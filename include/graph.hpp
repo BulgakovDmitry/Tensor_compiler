@@ -6,11 +6,11 @@
 namespace tensor_compiler {
 
 class Graph {
-private:
-  std::list<Node *> nodes_;
+  private:
+    std::list<Node *> nodes_;
 
-public:
-  void add_node(Node *node) { nodes_.push_back(node); }
+  public:
+    void add_node(Node *node) { nodes_.push_back(node); }
 };
 
 } // namespace tensor_compiler
