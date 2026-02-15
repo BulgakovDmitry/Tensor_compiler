@@ -1,7 +1,7 @@
 #ifndef INCLUDE_DRIVER_HPP
 #define INCLUDE_DRIVER_HPP
 
-#include "onnx/onnx_pb.h"
+#include "onnx.pb.h"
 #include <fstream>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 

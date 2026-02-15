@@ -14,10 +14,14 @@ endif()
 
 find_package(Protobuf REQUIRED)
 
+set(PROTO_GEN_DIR "${CMAKE_CURRENT_BINARY_DIR}/onnx_generated")
+
+file(MAKE_DIRECTORY ${PROTO_GEN_DIR})
+
 protobuf_generate_cpp(ONNX_GENERATED_SRC ONNX_GENERATED_HDR
     ${ONNX_PROTO}
     GENERATE_EXTENSIONS .pb.h .pb.cc
-    PROTOC_OUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/onnx
+    PROTOC_OUT_DIR ${PROTO_GEN_DIR}
 )
 
 add_executable(${PROJECT_NAME}
@@ -26,7 +30,7 @@ add_executable(${PROJECT_NAME}
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${PROTO_GEN_DIR}
     ${PROTOBUF_INCLUDE_DIRS}
     include
 )
