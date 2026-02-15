@@ -7,9 +7,9 @@
 
 namespace blab {
 
-inline int driver() {
+inline int driver(const std::string &model_onnx) {
   onnx::ModelProto model;
-  std::fstream input("mnist-12.onnx", std::ios::in | std::ios::binary);
+  std::fstream input(model_onnx, std::ios::in | std::ios::binary);
 
   if (!model.ParseFromIstream(&input)) {
     std::cerr << "Failed to parse ONNX model." << '\n';

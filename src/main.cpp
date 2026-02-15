@@ -1,7 +1,9 @@
 #include "driver.hpp"
 
-int main() {
-  blab::driver();
+int main(int argc, char* argv[]) {
 
-  return 0;
+    if (argc > 1)
+        blab::driver(argv[1]);
+
+    return 0;
 }
