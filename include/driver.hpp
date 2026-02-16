@@ -5,7 +5,7 @@
 #include <fstream>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 
-namespace blab {
+namespace tensor_compiler {
 
 inline int driver(const std::string &model_onnx) {
     onnx::ModelProto model;
@@ -16,13 +16,17 @@ inline int driver(const std::string &model_onnx) {
         return -1;
     }
 
-    const auto &graph = model.graph();
-    std::cout << "Graph '" << graph.name() << "' loaded." << '\n';
-    std::cout << "Number of nodes: " << graph.node_size() << '\n';
+  const auto &graph = model.graph();
+  std::cout << "Graph '" << graph.name() << "' loaded." << '\n';
+  std::cout << "Number of nodes: " << graph.node_size() << '\n';
+
+  for (auto init : graph.initializer()) {
+    //init.
+  }
 
     return 0;
 }
 
-} // namespace blab
+} // namespace tensor_compiler
 
 #endif // INCLUDE_DRIVER_HPP
