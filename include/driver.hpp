@@ -16,13 +16,13 @@ inline int driver(const std::string &model_onnx) {
         return -1;
     }
 
-  const auto &graph = model.graph();
-  std::cout << "Graph '" << graph.name() << "' loaded." << '\n';
-  std::cout << "Number of nodes: " << graph.node_size() << '\n';
+    const auto &graph = model.graph();
+    std::cout << "Graph '" << graph.name() << "' loaded." << '\n';
+    std::cout << "Number of nodes: " << graph.node_size() << '\n';
 
-  for (auto init : graph.initializer()) {
-    //init.
-  }
+    for (auto init : graph.initializer()) {
+        // init.
+    }
 
     return 0;
 }

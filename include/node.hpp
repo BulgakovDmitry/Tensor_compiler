@@ -3,9 +3,9 @@
 
 #include "onnx.pb.h"
 #include <cstddef>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <list>
 #include <string>
-#include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <variant>
 
 namespace tensor_compiler {
@@ -33,7 +33,8 @@ class Tensor {
 
   public:
     Tensor(const std::string &name, onnx::TensorProto_DataType &type,
-           std::vector<int64_t> shape, std::vector<char> &data, bool is_constant = false)
+           std::vector<int64_t> shape, std::vector<char> &data,
+           bool is_constant = false)
         : name_{name}, type_{type}, shape_{shape}, is_constant_{is_constant},
           data_{data} {}
 
@@ -46,14 +47,12 @@ class Attribute {
     enum class Type { FLOAT, INT, STRING, TENSOR, FLOATS, INTS /* ... */ };
 
     using AttrValue = std::variant<float, int64_t, std::string,
-                                    std::vector<float>,
-                                    std::vector<int64_t>>;
+                                   std::vector<float>, std::vector<int64_t>>;
 
     AttrValue data_;
 
   public:
-
-  // getters and constructors for different types
+    // getters and constructors for different types
 };
 
 class Node {
@@ -79,15 +78,16 @@ class Graph {
     std::vector<Node> nodes_;
     std::vector<std::string> inputs_;
     std::vector<std::string> outputs_;
-public:
+
+  public:
     void set_name(std::string name);
     void add_tensor(Tensor tensor);
     void add_node(Node node);
     void set_inputs(std::vector<std::string> inputs);
     void set_outputs(std::vector<std::string> outputs);
 
-    const Tensor* get_tensor(const std::string& name) const;
-    void dump(std::ostream& os) const;
+    const Tensor *get_tensor(const std::string &name) const;
+    void dump(std::ostream &os) const;
 
     // getters
 };
