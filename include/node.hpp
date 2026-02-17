@@ -17,10 +17,7 @@ using node_id = std::size_t;
 using value_id = std::size_t;
 
 enum class Opcode {
-    Add,
-    Sub,
-    Mul,
-    Div,
+    Add, Sub, Mul, Div,
     Relu,
 };
 
@@ -42,37 +39,36 @@ class Node {
 
     node_id get_id() const;
     Opcode get_opcode() const;
-    const std::string &get_name() const;
-    const std::vector<value_id> &get_inputs();
-    const std::vector<value_id> &get_outputs();
-    const std::vector<Attribute> &get_attributes() const;
-
-    void add_input(value_id input);
-    void add_output(value_id output);
+    const std::string& get_name() const;
+    const std::vector<value_id>& get_inputs() const;
+    const std::vector<value_id>& get_outputs() const;
+    const std::vector<Attribute>& get_attributes() const ;
+    
+    void add_input(value_id input)   ;
+    void add_output(value_id output) ;
 
     template <typename T> void set_attribute(const std::string &name, T value);
 
     bool has_attribute(const std::string &name) const;
 
     bool replace_input(value_id old_input, value_id new_input);
+    bool replace_output(value_id old_output, value_id new_output);
 };
 
 // ----------------------------------------------------------------------------
-// Implementations
+// @section Implementations
+// Implementation of node methods.
 // ----------------------------------------------------------------------------
-
-void Node::set_name(const std::string &name) { name_ = name; }
+void Node::set_name(const std::string& name) { name_ = name; }
 
 node_id Node::get_id() const { return id_; }
 Opcode Node::get_opcode() const { return opcode; }
-const std::string &Node::get_name() const { return name_; }
-const std::vector<value_id> &Node::get_inputs() { return inputs_; }
-const std::vector<value_id> &Node::get_outputs() { return outputs_; }
-const std::vector<Attribute> &Node::get_attributes() const {
-    return attributes_;
-}
+const std::string&            Node::get_name() const { return name_; }
+const std::vector<value_id>&  Node::get_inputs() const { return inputs_; }
+const std::vector<value_id>&  Node::get_outputs() const { return outputs_; }
+const std::vector<Attribute>& Node::get_attributes() const { return attributes_; }
 
-void Node::add_input(value_id input) { inputs_.push_back(input); }
+void Node::add_input(value_id input)   { inputs_.push_back(input); }
 void Node::add_output(value_id output) { outputs_.push_back(output); }
 
 template <typename T>
@@ -89,6 +85,26 @@ void Node::set_attribute(const std::string &name, T value) {
 bool Node::has_attribute(const std::string &name) const {
     for (const auto &attr : attributes_) {
         if (attr.get_name() == name) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Node::replace_input(value_id old_input, value_id new_input) {
+    for (auto &input : inputs_) {
+        if (input == old_input) {
+            input = new_input;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Node::replace_output(value_id old_output, value_id new_output) {
+    for (auto &output : outputs_) {
+        if (output == old_output) {
+            output = new_output;
             return true;
         }
     }

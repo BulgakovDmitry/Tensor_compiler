@@ -23,8 +23,25 @@ class Tensor {
         : name_{name}, type_{type}, is_constant_{is_constant}, data_{data},
           shape_{shape} {}
 
-    // getters and setters (to be implemented)
+    const std::string &get_name() const;
+    data_type get_type() const;
+    const std::vector<char> &get_data() const;
+    const std::vector<int64_t> &get_shape() const;
+    bool is_constant() const;
 };
+
+
+// ----------------------------------------------------------------------------
+// @section Implementations
+// Implementation of node methods.
+// ----------------------------------------------------------------------------
+const std::string &Tensor::get_name() const { return name_; }
+Tensor::data_type Tensor::get_type() const { return type_; }
+const std::vector<char> &Tensor::get_data() const { return data_; }
+const std::vector<int64_t> &Tensor::get_shape() const { return shape_; }
+
+bool Tensor::is_constant() const { return is_constant_; }
+
 
 } // namespace tensor_compiler
 
