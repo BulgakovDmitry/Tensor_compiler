@@ -62,7 +62,7 @@ const std::vector<std::string> &Graph::get_outputs() const { return outputs_; }
 void Graph::set_name(std::string name) { name_ = name; }
 
 void Graph::add_tensor(Tensor tensor) {
-    tensors_.insert({tensor.get_name(), tensor});
+    tensors_.emplace(tensor.get_name(), tensor);
 }
 
 void Graph::add_node(Node node) {
