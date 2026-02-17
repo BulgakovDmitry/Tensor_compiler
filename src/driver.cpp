@@ -1,8 +1,8 @@
+#include "driver.hpp"
 #include "onnx.pb.h"
 #include <fstream>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <iostream>
-#include "driver.hpp"
 
 int tensor_compiler::driver(const std::string &model_onnx) {
     onnx::ModelProto model;
