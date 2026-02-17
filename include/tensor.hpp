@@ -32,7 +32,7 @@ class Tensor {
 
 // ----------------------------------------------------------------------------
 // @section Implementations
-// Implementation of node methods.
+// Implementation of tensor methods.
 // ----------------------------------------------------------------------------
 const std::string &Tensor::get_name() const { return name_; }
 Tensor::data_type Tensor::get_type() const { return type_; }
