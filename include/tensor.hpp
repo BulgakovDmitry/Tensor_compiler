@@ -30,7 +30,6 @@ class Tensor {
     bool is_constant() const;
 };
 
-
 // ----------------------------------------------------------------------------
 // @section Implementations
 // Implementation of node methods.
@@ -41,7 +40,6 @@ const std::vector<char> &Tensor::get_data() const { return data_; }
 const std::vector<int64_t> &Tensor::get_shape() const { return shape_; }
 
 bool Tensor::is_constant() const { return is_constant_; }
-
 
 } // namespace tensor_compiler
 
