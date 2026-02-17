@@ -7,11 +7,11 @@
 #include "tensor.hpp"
 #include <cstddef>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <ostream>
 #include <string>
 #include <unordered_map>
 #include <variant>
 #include <vector>
-#include <ostream>
 
 namespace tensor_compiler {
 
@@ -40,9 +40,9 @@ class Graph {
 
     void add_node(Node node);
 
-    void set_inputs(const std::vector<std::string>& inputs);
+    void set_inputs(const std::vector<std::string> &inputs);
 
-    void set_outputs(const std::vector<std::string>& outputs);
+    void set_outputs(const std::vector<std::string> &outputs);
 
     const Tensor *get_tensor(const std::string &name) const;
 
@@ -65,15 +65,13 @@ void Graph::add_tensor(Tensor tensor) {
     tensors_.emplace(tensor.get_name(), tensor);
 }
 
-void Graph::add_node(Node node) {
-    nodes_.push_back(node);
-}
+void Graph::add_node(Node node) { nodes_.push_back(node); }
 
-void Graph::set_inputs(const std::vector<std::string>& inputs) {
+void Graph::set_inputs(const std::vector<std::string> &inputs) {
     inputs_ = inputs;
 }
 
-void Graph::set_outputs(const std::vector<std::string>& outputs) {
+void Graph::set_outputs(const std::vector<std::string> &outputs) {
     outputs_ = outputs;
 }
 
