@@ -2,8 +2,9 @@
 #include <fstream>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <iostream>
+#include "driver.hpp"
 
-inline int driver(const std::string &model_onnx) {
+int tensor_compiler::driver(const std::string &model_onnx) {
     onnx::ModelProto model;
     std::fstream input(model_onnx, std::ios::in | std::ios::binary);
 

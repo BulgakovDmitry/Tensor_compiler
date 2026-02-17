@@ -26,6 +26,7 @@ protobuf_generate_cpp(ONNX_GENERATED_SRC ONNX_GENERATED_HDR
 
 add_executable(${PROJECT_NAME}
     src/main.cpp
+    src/driver.cpp
     ${ONNX_GENERATED_SRC}
 )
 

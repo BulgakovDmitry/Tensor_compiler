@@ -32,11 +32,11 @@ class Tensor {
   private:
     using data_type = onnx::TensorProto_DataType;
 
-    std::string name_; ///< Unique name of the tensor.
-    data_type type_;   ///< Data type (using ONNX enum for compatibility).
-    bool is_constant_; ///< True if the tensor is a constant (weights, etc.).
-    std::vector<char> data_;     ///< Raw byte data for constant tensors.
-    std::vector<int64_t> shape_; ///< Dimensions of the tensor.
+    std::string name_; 
+    data_type type_;   
+    bool is_constant_; 
+    std::vector<char> data_;      
+    std::vector<int64_t> shape_; 
 
   public:
     /**
@@ -66,7 +66,7 @@ class Tensor {
  */
 class Attribute {
   private:
-    std::string name_; ///< Name of the attribute.
+    std::string name_; 
 
     /**
      * @brief Variant type capable of holding the actual attribute value.
@@ -91,8 +91,9 @@ class Attribute {
 class Node {
   private:
     id_t id_;
-    std::string op_type_;
-    std::string name_;
+    // std::string op_type_; //opcode
+    std::string name_;       //
+
     std::vector<std::string> inputs_;
     std::vector<std::string> outputs_;
     std::vector<Attribute> attributes_; ///< List of operation attributes.
@@ -156,7 +157,8 @@ class Graph {
 
     /**
      * @brief Sets the list of input tensor names.
-     * @param inputs Vector of input names.
+     *     std::vector<std::string> outputs_; ///< Names of output tensors.
+@param inputs Vector of input names.
      */
     void set_inputs(std::vector<std::string> inputs);
 
