@@ -14,9 +14,13 @@ class Attribute {
     using AttrValue = std::variant<float, int64_t, std::string,
                                    std::vector<float>, std::vector<int64_t>>;
 
-    AttrValue data_;
+    AttrValue value;
 
   public:
+    Attribute(const std::string &name, const AttrValue &value) : name_{name}, value{value} {}
+
+    const std::string &get_name() const { return name_; }
+    const AttrValue &get_value() const { return value; }
     // constructors and getters for different types (to be implemented)
 };
 
