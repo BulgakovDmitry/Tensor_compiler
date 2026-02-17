@@ -1,15 +1,15 @@
 #ifndef INCLUDE_NODE_HPP
 #define INCLUDE_NODE_HPP
 
+#include "attribute.hpp"
 #include "onnx.pb.h"
+#include "tensor.hpp"
 #include <cstddef>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <string>
+#include <unordered_map>
 #include <variant>
 #include <vector>
-#include <unordered_map>
-#include "tensor.hpp"
-#include "attribute.hpp"
 
 namespace tensor_compiler {
 
@@ -31,7 +31,7 @@ class Node {
 
     std::vector<std::string> inputs_;
     std::vector<std::string> outputs_;
-    std::vector<Attribute> attributes_; 
+    std::vector<Attribute> attributes_;
 
   public:
     Node(id_t id, const std::string &name) : id_{id}, name_{name} {}
