@@ -1,182 +1,120 @@
-/**
- * @file node.hpp
- * @brief Defines the core data structures for representing a computation graph
- *        of a neural network, including tensors, attributes, nodes, and the
- * graph itself.
- */
-
 #ifndef INCLUDE_NODE_HPP
 #define INCLUDE_NODE_HPP
 
+#include "attribute.hpp"
 #include "onnx.pb.h"
+#include "tensor.hpp"
 #include <cstddef>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <string>
+#include <unordered_map>
 #include <variant>
+#include <vector>
 
 namespace tensor_compiler {
 
-/**
- * @brief Type alias for a unique identifier used to reference nodes.
- */
-using id_t = std::size_t;
+using node_id = std::size_t;
+using value_id = std::size_t;
 
-/**
- * @brief Represents a tensor in the computation graph.
- *
- * A tensor holds metadata such as name, data type, shape, and optionally
- * constant data (if it comes from an ONNX initializer). Tensors are uniquely
- * identified by their name within a graph.
- */
-class Tensor {
-  private:
-    using data_type = onnx::TensorProto_DataType;
-
-    std::string name_; ///< Unique name of the tensor.
-    data_type type_;   ///< Data type (using ONNX enum for compatibility).
-    bool is_constant_; ///< True if the tensor is a constant (weights, etc.).
-    std::vector<char> data_;     ///< Raw byte data for constant tensors.
-    std::vector<int64_t> shape_; ///< Dimensions of the tensor.
-
-  public:
-    /**
-     * @brief Constructs a new Tensor object.
-     *
-     * @param name Unique name of the tensor.
-     * @param type Data type of the tensor (ONNX enum).
-     * @param shape Vector of dimension sizes.
-     * @param data Raw byte data (for constants; may be empty for
-     * non‑constants).
-     * @param is_constant Flag indicating whether this tensor holds constant
-     * data.
-     */
-    Tensor(const std::string &name, data_type &type, std::vector<int64_t> shape,
-           std::vector<char> &data, bool is_constant = false)
-        : name_{name}, type_{type}, is_constant_{is_constant}, data_{data},
-          shape_{shape} {}
-
-    // getters and setters (to be implemented)
+enum class Opcode {
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Relu,
 };
 
-/**
- * @brief Represents an attribute of an operation node.
- *
- * Attributes are named parameters that configure the behavior of an operation
- * (e.g., kernel_shape for Conv). They can hold values of various types.
- */
-class Attribute {
-  private:
-    std::string name_; ///< Name of the attribute.
-
-    /**
-     * @brief Variant type capable of holding the actual attribute value.
-     *
-     * Supports the most common attribute types found in ONNX.
-     */
-    using AttrValue = std::variant<float, int64_t, std::string,
-                                   std::vector<float>, std::vector<int64_t>>;
-
-    AttrValue data_; ///< Stored attribute value.
-
-  public:
-    // constructors and getters for different types (to be implemented)
-};
-
-/**
- * @brief Represents a node (operation) in the computation graph.
- *
- * A node corresponds to an ONNX operator. It has a type (e.g., "Conv"),
- * a list of input and output tensor names, and a collection of attributes.
- */
 class Node {
   private:
-    id_t id_;
-    std::string op_type_;
+    node_id id_;
+    Opcode opcode;
     std::string name_;
-    std::vector<std::string> inputs_;
-    std::vector<std::string> outputs_;
-    std::vector<Attribute> attributes_; ///< List of operation attributes.
+
+    std::vector<value_id> inputs_;
+    std::vector<value_id> outputs_;
+    std::vector<Attribute> attributes_;
 
   public:
-    /**
-     * @brief Constructs a new Node object.
-     *
-     * @param id Unique identifier for the node.
-     * @param name Optional name (can be empty).
-     */
-    Node(id_t id, const std::string &name) : id_{id}, name_{name} {}
+    Node(node_id id, const std::string &name, Opcode opcode)
+        : id_{id}, name_{name}, opcode{opcode} {}
 
-    /**
-     * @brief Sets or updates the node's name.
-     * @param name New name.
-     */
-    void set_name(std::string name);
+    void set_name(const std::string &name);
 
-    /**
-     * @brief Adds an attribute to the node.
-     * @param attr The attribute to add.
-     */
-    void add_attribute(Attribute attr);
+    node_id get_id() const;
+    Opcode get_opcode() const;
+    const std::string &get_name() const;
+    const std::vector<value_id> &get_inputs() const;
+    const std::vector<value_id> &get_outputs() const;
+    const std::vector<Attribute> &get_attributes() const;
+
+    void add_input(value_id input);
+    void add_output(value_id output);
+
+    template <typename T> void set_attribute(const std::string &name, T value);
+
+    bool has_attribute(const std::string &name) const;
+
+    bool replace_input(value_id old_input, value_id new_input);
+    bool replace_output(value_id old_output, value_id new_output);
 };
 
-/**
- * @brief Represents the entire computation graph.
- *
- * The graph owns all tensors and nodes, and maintains lists of input and
- * output tensor names. It provides methods to build and query the graph.
- */
-class Graph {
-  private:
-    using T_map = std::unordered_map<std::string, Tensor>;
+// ----------------------------------------------------------------------------
+// @section Implementations
+// Implementation of node methods.
+// ----------------------------------------------------------------------------
+void Node::set_name(const std::string &name) { name_ = name; }
 
-    std::string name_;        ///< Name of the graph (from ONNX).
-    T_map tensors_;           ///< Map from tensor name to Tensor object.
-    std::vector<Node> nodes_; ///< List of nodes in topological order.
-    std::vector<std::string> inputs_; ///< Names of input tensors, not constants
-    std::vector<std::string> outputs_; ///< Names of output tensors.
+node_id Node::get_id() const { return id_; }
+Opcode Node::get_opcode() const { return opcode; }
+const std::string &Node::get_name() const { return name_; }
+const std::vector<value_id> &Node::get_inputs() const { return inputs_; }
+const std::vector<value_id> &Node::get_outputs() const { return outputs_; }
+const std::vector<Attribute> &Node::get_attributes() const {
+    return attributes_;
+}
 
-  public:
-    /**
-     * @brief Sets the graph name.
-     * @param name New graph name.
-     */
-    void set_name(std::string name);
+void Node::add_input(value_id input) { inputs_.push_back(input); }
+void Node::add_output(value_id output) { outputs_.push_back(output); }
 
-    /**
-     * @brief Adds a tensor to the graph.
-     * @param tensor The tensor to add.
-     */
-    void add_tensor(Tensor tensor);
+template <typename T>
+void Node::set_attribute(const std::string &name, T value) {
+    for (auto &attr : attributes_) {
+        if (attr.get_name() == name) {
+            attr.set_value(value);
+            return;
+        }
+    }
+    attributes_.emplace_back(name, value);
+}
 
-    /**
-     * @brief Adds a node to the graph.
-     * @param node The node to add.
-     */
-    void add_node(Node node);
+bool Node::has_attribute(const std::string &name) const {
+    for (const auto &attr : attributes_) {
+        if (attr.get_name() == name) {
+            return true;
+        }
+    }
+    return false;
+}
 
-    /**
-     * @brief Sets the list of input tensor names.
-     * @param inputs Vector of input names.
-     */
-    void set_inputs(std::vector<std::string> inputs);
+bool Node::replace_input(value_id old_input, value_id new_input) {
+    for (auto &input : inputs_) {
+        if (input == old_input) {
+            input = new_input;
+            return true;
+        }
+    }
+    return false;
+}
 
-    /**
-     * @brief Sets the list of output tensor names.
-     * @param outputs Vector of output names.
-     */
-    void set_outputs(std::vector<std::string> outputs);
-
-    /**
-     * @brief Retrieves a tensor by its name.
-     * @param name The tensor name.
-     * @return Pointer to the tensor, or nullptr if not found.
-     */
-    const Tensor *get_tensor(const std::string &name) const;
-
-    void dump(std::ostream &os) const;
-
-    // getters (to be implemented)
-};
+bool Node::replace_output(value_id old_output, value_id new_output) {
+    for (auto &output : outputs_) {
+        if (output == old_output) {
+            output = new_output;
+            return true;
+        }
+    }
+    return false;
+}
 
 } // namespace tensor_compiler
 
