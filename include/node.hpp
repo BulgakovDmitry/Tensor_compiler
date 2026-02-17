@@ -32,46 +32,45 @@ class Node {
 
     std::vector<value_id> inputs_;
     std::vector<value_id> outputs_;
-    std::vector<Attribute> attributes_; 
+    std::vector<Attribute> attributes_;
 
   public:
-    Node(node_id id, const std::string &name, Opcode opcode) : id_{id}, name_{name}, opcode{opcode} {}
+    Node(node_id id, const std::string &name, Opcode opcode)
+        : id_{id}, name_{name}, opcode{opcode} {}
 
-    void set_name(const std::string& name);
+    void set_name(const std::string &name);
 
     node_id get_id() const;
     Opcode get_opcode() const;
-    const std::string& get_name() const;
-    const std::vector<value_id>& get_inputs()  ;
-    const std::vector<value_id>& get_outputs() ;
-    const std::vector<Attribute>& get_attributes() const ;
-    
-    void add_input(value_id input)   ;
-    void add_output(value_id output) ;
+    const std::string &get_name() const;
+    const std::vector<value_id> &get_inputs();
+    const std::vector<value_id> &get_outputs();
+    const std::vector<Attribute> &get_attributes() const;
 
-    template <typename T>
-    void set_attribute(const std::string &name, T value);
+    void add_input(value_id input);
+    void add_output(value_id output);
+
+    template <typename T> void set_attribute(const std::string &name, T value);
 
     bool has_attribute(const std::string &name) const;
 
     bool replace_input(value_id old_input, value_id new_input);
-    
-
 };
-
 
 // ----------------------------------------------------------------------------
 // Implementations
 // ----------------------------------------------------------------------------
 
-void Node::set_name(const std::string& name) { name_ = name; }
+void Node::set_name(const std::string &name) { name_ = name; }
 
 node_id Node::get_id() const { return id_; }
 Opcode Node::get_opcode() const { return opcode; }
-const std::string& Node::get_name() const { return name_; }
-const std::vector<value_id>& Node::get_inputs() { return inputs_; }
-const std::vector<value_id>& Node::get_outputs() { return outputs_; }
-const std::vector<Attribute>& Node::get_attributes() const { return attributes_; }
+const std::string &Node::get_name() const { return name_; }
+const std::vector<value_id> &Node::get_inputs() { return inputs_; }
+const std::vector<value_id> &Node::get_outputs() { return outputs_; }
+const std::vector<Attribute> &Node::get_attributes() const {
+    return attributes_;
+}
 
 void Node::add_input(value_id input) { inputs_.push_back(input); }
 void Node::add_output(value_id output) { outputs_.push_back(output); }
@@ -95,9 +94,6 @@ bool Node::has_attribute(const std::string &name) const {
     }
     return false;
 }
-
-
-
 
 } // namespace tensor_compiler
 
