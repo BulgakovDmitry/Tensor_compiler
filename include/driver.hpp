@@ -6,8 +6,8 @@
 #ifndef INCLUDE_DRIVER_HPP
 #define INCLUDE_DRIVER_HPP
 
-#include <string>
 #include "graph.hpp"
+#include <string>
 
 namespace tensor_compiler {
 

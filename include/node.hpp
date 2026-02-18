@@ -52,7 +52,8 @@ class Node {
 
     bool replace_input(value_id old_input, value_id new_input);
     bool replace_output(value_id old_output, value_id new_output);
-private:
+
+  private:
     void add_input(value_id input);
     void add_output(value_id output);
 };
@@ -68,9 +69,7 @@ const std::string &Node::get_opcode() const { return opcode_; }
 const std::string &Node::get_name() const { return name_; }
 const std::vector<value_id> &Node::get_inputs() const { return inputs_; }
 const std::vector<value_id> &Node::get_outputs() const { return outputs_; }
-const Attributes &Node::get_attributes() const {
-    return attributes_;
-}
+const Attributes &Node::get_attributes() const { return attributes_; }
 
 void Node::set_inputs(const auto &node) {
     inputs_.assign(node.input().begin(), node.input().end());
@@ -81,7 +80,7 @@ void Node::set_outputs(const auto &node) {
 }
 
 void Node::parse_attributes(const auto &node) {
-  /// TODO
+    /// TODO
 }
 
 void Node::add_input(value_id input) { inputs_.push_back(input); }

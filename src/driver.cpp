@@ -8,7 +8,7 @@
 tensor_compiler::Graph tensor_compiler::build_compute_graph(const auto &graph) {
     Graph compute_graph{graph.name()};
 
-    for (const auto& initializer : graph.initializer()) {
+    for (const auto &initializer : graph.initializer()) {
         Tensor tensor{};
 
         tensor.set_name(initializer.name());
@@ -20,7 +20,7 @@ tensor_compiler::Graph tensor_compiler::build_compute_graph(const auto &graph) {
         compute_graph.add_tensor(tensor);
     }
 
-    for (const auto& input : graph.input()) {
+    for (const auto &input : graph.input()) {
         Tensor tensor{};
 
         tensor.set_name(input.name());
@@ -30,7 +30,7 @@ tensor_compiler::Graph tensor_compiler::build_compute_graph(const auto &graph) {
         compute_graph.add_input(tensor);
     }
 
-    for (const auto& node : graph.node()) {
+    for (const auto &node : graph.node()) {
         Node new_node{node.name(), node.op_type()};
 
         new_node.set_inputs(node.input());
@@ -40,7 +40,7 @@ tensor_compiler::Graph tensor_compiler::build_compute_graph(const auto &graph) {
         compute_graph.add_node(new_node);
     }
 
-    for (const auto& output : graph.output()) {
+    for (const auto &output : graph.output()) {
         Tensor tensor{};
         tensor.set_name(output.name());
         tensor.set_name(input.name());
