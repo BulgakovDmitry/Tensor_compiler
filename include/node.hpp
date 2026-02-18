@@ -15,6 +15,9 @@ namespace tensor_compiler {
 
 using node_id = std::size_t;
 using value_id = std::size_t;
+using Attributes = std::unordered_map<std::string, Attribute>;
+
+static constexpr value_id invalid_value = static_cast<value_id>(-1);
 
 enum class Opcode {
     Add,
@@ -27,16 +30,16 @@ enum class Opcode {
 class Node {
   private:
     node_id id_;
-    Opcode opcode;
+    Opcode opcode_;
     std::string name_;
 
     std::vector<value_id> inputs_;
     std::vector<value_id> outputs_;
-    std::vector<Attribute> attributes_;
+    Attributes attributes_;
 
   public:
     Node(node_id id, const std::string &name, Opcode opcode)
-        : id_{id}, name_{name}, opcode{opcode} {}
+        : id_{id}, name_{name}, opcode_{opcode} {}
 
     void set_name(const std::string &name);
 
