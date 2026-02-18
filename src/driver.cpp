@@ -23,13 +23,16 @@ tensor_compiler::build_compute_graph(const onnx::GraphProto &graph) {
 
     auto extract_dims = [](const onnx::ValueInfoProto &v) -> Tensor::type_dim {
         Tensor::type_dim dims;
-        if (!v.has_type() || !v.type().has_tensor_type() || !v.type().tensor_type().has_shape())
+        if (!v.has_type() || !v.type().has_tensor_type() ||
+            !v.type().tensor_type().has_shape())
             return dims;
 
         const auto &shape = v.type().tensor_type().shape();
         for (int i = 0; i < shape.dim_size(); ++i) {
             const auto &d = shape.dim(i);
-            long int val = d.has_dim_value() ? static_cast<long int>(d.dim_value()) : -1; // неизвестно -> -1
+            long int val = d.has_dim_value()
+                               ? static_cast<long int>(d.dim_value())
+                               : -1; // неизвестно -> -1
             dims.Add(val);
         }
         return dims;

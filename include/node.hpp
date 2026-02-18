@@ -12,7 +12,7 @@
 #include <vector>
 
 namespace tensor_compiler {
-    
+
 class Node {
   public:
     using node_id = std::size_t;
@@ -50,7 +50,8 @@ class Node {
     void set_outputs(const name_t &outputs);
     void parse_attributes(const onnx::NodeProto &node);
 
-    void set_attribute(const std::string &name, const Attribute::AttrValue &value);
+    void set_attribute(const std::string &name,
+                       const Attribute::AttrValue &value);
 
     bool has_attribute(const std::string &name) const;
 
@@ -71,11 +72,19 @@ inline void Node::set_name(const std::string &name) { name_ = name; }
 inline Node::node_id Node::get_id() const { return id_; }
 inline const std::string &Node::get_opcode() const { return opcode_; }
 inline const std::string &Node::get_name() const { return name_; }
-inline const std::vector<Node::value_id> &Node::get_inputs() const { return inputs_; }
-inline const std::vector<Node::value_id> &Node::get_outputs() const { return outputs_; }
-inline const Node::Attributes &Node::get_attributes() const { return attributes_; }
+inline const std::vector<Node::value_id> &Node::get_inputs() const {
+    return inputs_;
+}
+inline const std::vector<Node::value_id> &Node::get_outputs() const {
+    return outputs_;
+}
+inline const Node::Attributes &Node::get_attributes() const {
+    return attributes_;
+}
 
-inline void Node::set_inputs(const std::vector<value_id> &inputs) { inputs_ = inputs; }
+inline void Node::set_inputs(const std::vector<value_id> &inputs) {
+    inputs_ = inputs;
+}
 
 inline void Node::set_inputs(const name_t &inputs) {
     inputs_.clear();
@@ -115,7 +124,8 @@ inline void Node::parse_attributes(const onnx::NodeProto &node) {
         case onnx::AttributeProto_AttributeType_FLOATS: {
             std::vector<float> v;
             v.reserve(attr.floats_size());
-            for (int i = 0; i < attr.floats_size(); ++i) v.push_back(attr.floats(i));
+            for (int i = 0; i < attr.floats_size(); ++i)
+                v.push_back(attr.floats(i));
             set_attribute(name, v);
             break;
         }
@@ -138,10 +148,10 @@ inline void Node::parse_attributes(const onnx::NodeProto &node) {
 inline void Node::add_input(value_id input) { inputs_.push_back(input); }
 inline void Node::add_output(value_id output) { outputs_.push_back(output); }
 
-inline void Node::set_attribute(const std::string &name, const Attribute::AttrValue &value) {
+inline void Node::set_attribute(const std::string &name,
+                                const Attribute::AttrValue &value) {
     attributes_[name] = Attribute{name, value};
 }
-
 
 inline bool Node::has_attribute(const std::string &name) const {
     return attributes_.find(name) != attributes_.end();

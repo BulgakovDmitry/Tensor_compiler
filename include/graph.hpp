@@ -15,7 +15,6 @@
 
 namespace tensor_compiler {
 
-    
 class Graph {
   public:
     using T_map = std::unordered_map<std::string, Tensor>;
@@ -58,8 +57,12 @@ class Graph {
 inline const std::string &Graph::get_name() const { return name_; }
 inline const Graph::T_map &Graph::get_tensors() const { return tensors_; }
 inline const std::vector<Node> &Graph::get_nodes() const { return nodes_; }
-inline const std::vector<std::string> &Graph::get_inputs() const { return inputs_; }
-inline const std::vector<std::string> &Graph::get_outputs() const { return outputs_; }
+inline const std::vector<std::string> &Graph::get_inputs() const {
+    return inputs_;
+}
+inline const std::vector<std::string> &Graph::get_outputs() const {
+    return outputs_;
+}
 
 inline void Graph::set_name(std::string name) { name_ = name; }
 
@@ -77,8 +80,12 @@ inline void Graph::set_outputs(const std::vector<std::string> &outputs) {
     outputs_ = outputs;
 }
 
-inline void Graph::add_input(const std::string input) { inputs_.push_back(input); }
-inline void Graph::add_output(const std::string output) { outputs_.push_back(output); }
+inline void Graph::add_input(const std::string input) {
+    inputs_.push_back(input);
+}
+inline void Graph::add_output(const std::string output) {
+    outputs_.push_back(output);
+}
 
 inline const Tensor *Graph::get_tensor(const std::string &name) const {
     auto it = tensors_.find(name);

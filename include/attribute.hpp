@@ -9,11 +9,11 @@ namespace tensor_compiler {
 
 class Attribute {
   public:
-  using AttrValue = std::variant<float, int64_t, std::string,
-                                 std::vector<float>, std::vector<int64_t>>;
+    using AttrValue = std::variant<float, int64_t, std::string,
+                                   std::vector<float>, std::vector<int64_t>>;
+
   private:
     std::string name_;
-
 
     AttrValue value;
 
