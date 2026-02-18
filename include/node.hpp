@@ -42,9 +42,9 @@ class Node {
     const std::vector<value_id> &get_outputs() const;
     const Attributes &get_attributes() const;
 
-    void set_inputs(const auto &node);
-    void set_outputs(const auto &node);
-    void parse_attributes(const auto &node);
+    void set_inputs(const std::vector<value_id>& inputs);
+    void set_outputs(const std::vector<value_id>& outputs);
+    void parse_attributes(const onnx::NodeProto &node);
 
     template <typename T> void set_attribute(const std::string &name, T value);
 
@@ -71,16 +71,16 @@ const std::vector<value_id> &Node::get_inputs() const { return inputs_; }
 const std::vector<value_id> &Node::get_outputs() const { return outputs_; }
 const Attributes &Node::get_attributes() const { return attributes_; }
 
-void Node::set_inputs(const auto &node) {
-    inputs_.assign(node.input().begin(), node.input().end());
+void Node::set_inputs(const std::vector<value_id>& inputs) {
+    inputs_ = inputs;
 }
 
-void Node::set_outputs(const auto &node) {
-    outputs_.assign(node.output().begin(), node.output().end());
+void Node::set_outputs(const std::vector<value_id>& outputs) {
+    outputs_ = outputs;
 }
 
-void Node::parse_attributes(const auto &node) {
-    /// TODO
+void Node::parse_attributes(const onnx::NodeProto &node) {
+    // TODO
 }
 
 void Node::add_input(value_id input) { inputs_.push_back(input); }
