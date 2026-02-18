@@ -22,27 +22,27 @@ class Graph {
     std::string name_;
     T_map tensors_;
     std::vector<Node> nodes_;
-    std::vector<std::string> inputs_;
-    std::vector<std::string> outputs_;
+    std::vector<value_id> inputs_;
+    std::vector<value_id> outputs_;
 
   public:
+    Graph() = default;
     Graph(const std::string &name) : name_{name} {}
 
     const std::string &get_name() const;
     const T_map &get_tensors() const;
     const std::vector<Node> &get_nodes() const;
-    const std::vector<std::string> &get_inputs() const;
-    const std::vector<std::string> &get_outputs() const;
+    const std::vector<value_id> &get_inputs() const;
+    const std::vector<value_id> &get_outputs() const;
 
     void set_name(std::string name);
+    void set_inputs(const std::vector<value_id> &inputs);
+    void set_outputs(const std::vector<value_id> &outputs);
 
     void add_tensor(Tensor tensor);
-
     void add_node(Node node);
-
-    void set_inputs(const std::vector<std::string> &inputs);
-
-    void set_outputs(const std::vector<std::string> &outputs);
+    void add_input(const value_id input);
+    void add_output(const value_id output);
 
     const Tensor *get_tensor(const std::string &name) const;
 
@@ -56,8 +56,8 @@ class Graph {
 const std::string &Graph::get_name() const { return name_; }
 const T_map &Graph::get_tensors() const { return tensors_; }
 const std::vector<Node> &Graph::get_nodes() const { return nodes_; }
-const std::vector<std::string> &Graph::get_inputs() const { return inputs_; }
-const std::vector<std::string> &Graph::get_outputs() const { return outputs_; }
+const std::vector<value_id> &Graph::get_inputs() const { return inputs_; }
+const std::vector<value_id> &Graph::get_outputs() const { return outputs_; }
 
 void Graph::set_name(std::string name) { name_ = name; }
 
@@ -67,13 +67,16 @@ void Graph::add_tensor(Tensor tensor) {
 
 void Graph::add_node(Node node) { nodes_.push_back(node); }
 
-void Graph::set_inputs(const std::vector<std::string> &inputs) {
+void Graph::set_inputs(const std::vector<value_id> &inputs) {
     inputs_ = inputs;
 }
 
-void Graph::set_outputs(const std::vector<std::string> &outputs) {
+void Graph::set_outputs(const std::vector<value_id> &outputs) {
     outputs_ = outputs;
 }
+
+void Graph::add_input(const value_id input) { inputs_.push_back(input); }
+void Graph::add_output(const value_id output) { outputs_.push_back(output); }
 
 const Tensor *Graph::get_tensor(const std::string &name) const {
     auto it = tensors_.find(name);
