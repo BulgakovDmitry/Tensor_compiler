@@ -86,24 +86,14 @@ void Node::parse_attributes(const auto &node) {
 void Node::add_input(value_id input) { inputs_.push_back(input); }
 void Node::add_output(value_id output) { outputs_.push_back(output); }
 
-template <typename T>
-void Node::set_attribute(const std::string &name, T value) {
-    for (auto &attr : attributes_) {
-        if (attr.get_name() == name) {
-            attr.set_value(value);
-            return;
-        }
-    }
-    attributes_.emplace_back(name, value);
+template<class T>
+void Node::set_attribute(const std::string& name, T value) {
+    auto& a = attributes_[name];   
+    a.set_value(value);             
 }
 
-bool Node::has_attribute(const std::string &name) const {
-    for (const auto &attr : attributes_) {
-        if (attr.get_name() == name) {
-            return true;
-        }
-    }
-    return false;
+bool Node::has_attribute(const std::string& name) const {
+    return attributes_.find(name) != attributes_.end();
 }
 
 bool Node::replace_input(value_id old_input, value_id new_input) {

@@ -35,6 +35,13 @@ class Tensor {
     Tensor_kind get_kind() const;
     const std::vector<char> &get_data() const;
     const std::vector<int64_t> &get_shape() const;
+
+    void set_name(const std::string &name);
+    void set_type(data_type type);
+    void set_kind(Tensor_kind kind);
+    void set_data(const std::vector<char> &data);
+    void set_shape(const std::vector<int64_t> &shape);
+
     bool is_constant() const;
 };
 
@@ -47,6 +54,13 @@ Tensor::data_type Tensor::get_type() const { return type_; }
 const std::vector<char> &Tensor::get_data() const { return data_; }
 const std::vector<int64_t> &Tensor::get_shape() const { return shape_; }
 Tensor_kind Tensor::get_kind() const { return kind_; }
+
+void Tensor::set_name(const std::string &name) { name_ = name; }
+void Tensor::set_type(data_type type) { type_ = type; }
+void Tensor::set_kind(Tensor_kind kind) { kind_ = kind; }
+void Tensor::set_data(const std::vector<char> &data) { data_ = data; }
+void Tensor::set_shape(const std::vector<int64_t> &shape) { shape_ = shape; }
+
 bool Tensor::is_constant() const { return kind_ == Tensor_kind::constant; }
 
 } // namespace tensor_compiler
