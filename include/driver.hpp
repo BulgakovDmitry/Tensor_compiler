@@ -6,9 +6,18 @@
 #ifndef INCLUDE_DRIVER_HPP
 #define INCLUDE_DRIVER_HPP
 
+#include "graph.hpp"
 #include <string>
 
 namespace tensor_compiler {
+
+/**
+ * @brief Parses an ONNX model graph to compute graph
+ *
+ * @param graph
+ * @return Graph
+ */
+Graph build_compute_graph(const auto &graph);
 
 /**
  * @brief Loads and parses an ONNX model file
