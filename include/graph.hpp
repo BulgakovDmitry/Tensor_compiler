@@ -43,7 +43,6 @@ class Graph {
     void add_input(const std::string &input);
     void add_output(const std::string &output);
 
-
     const Tensor *get_tensor(const std::string &name) const;
 
     void dump(std::ostream &os) const;
@@ -76,7 +75,9 @@ void Graph::set_outputs(const std::vector<std::string> &outputs) {
 }
 
 void Graph::add_input(const std::string &input) { inputs_.push_back(input); }
-void Graph::add_output(const std::string &output) { outputs_.push_back(output); }
+void Graph::add_output(const std::string &output) {
+    outputs_.push_back(output);
+}
 
 const Tensor *Graph::get_tensor(const std::string &name) const {
     auto it = tensors_.find(name);
