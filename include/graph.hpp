@@ -35,14 +35,14 @@ class Graph {
     const std::vector<std::string> &get_outputs() const;
 
     void set_name(std::string name);
+    void set_inputs(const std::vector<std::string> &inputs);
+    void set_outputs(const std::vector<std::string> &outputs);
 
     void add_tensor(Tensor tensor);
-
     void add_node(Node node);
+    void add_input(const std::string &input);
+    void add_output(const std::string &output);
 
-    void set_inputs(const std::vector<std::string> &inputs);
-
-    void set_outputs(const std::vector<std::string> &outputs);
 
     const Tensor *get_tensor(const std::string &name) const;
 
@@ -74,6 +74,9 @@ void Graph::set_inputs(const std::vector<std::string> &inputs) {
 void Graph::set_outputs(const std::vector<std::string> &outputs) {
     outputs_ = outputs;
 }
+
+void Graph::add_input(const std::string &input) { inputs_.push_back(input); }
+void Graph::add_output(const std::string &output) { outputs_.push_back(output); }
 
 const Tensor *Graph::get_tensor(const std::string &name) const {
     auto it = tensors_.find(name);

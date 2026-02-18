@@ -12,8 +12,8 @@ tensor_compiler::Graph tensor_compiler::build_compute_graph(const auto &graph) {
         Tensor tensor{};
 
         tensor.set_name(initializer.name());
-        tensor.set_dims(initializer.dims());
-        tensor.set_data_type(initializer.data_type());
+        tensor.set_dim(initializer.dims());
+        tensor.set_type(initializer.data_type());
         tensor.set_data(initializer.raw_data());
         tensor.set_kind(Tensor_kind::constant);
 
@@ -24,7 +24,7 @@ tensor_compiler::Graph tensor_compiler::build_compute_graph(const auto &graph) {
         Tensor tensor{};
 
         tensor.set_name(input.name());
-        tensor.set_dims(input.type().tensor_type().shape());
+        tensor.set_dim(input.type().tensor_type().shape().size());
         tensor.set_kind(Tensor_kind::input);
 
         compute_graph.add_input(tensor);
@@ -43,8 +43,7 @@ tensor_compiler::Graph tensor_compiler::build_compute_graph(const auto &graph) {
     for (const auto &output : graph.output()) {
         Tensor tensor{};
         tensor.set_name(output.name());
-        tensor.set_name(input.name());
-        tensor.set_dims(input.type().tensor_type().shape());
+        tensor.set_dim(output.type().tensor_type().shape().size());
         tensor.set_kind(Tensor_kind::output);
 
         compute_graph.add_output(tensor);
