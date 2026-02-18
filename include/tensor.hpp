@@ -66,10 +66,14 @@ inline void Tensor::set_name(const std::string &name) { name_ = name; }
 inline void Tensor::set_type(const int type) { type_ = type; }
 inline void Tensor::set_kind(Tensor_kind kind) { kind_ = kind; }
 inline void Tensor::set_data(const std::string &data) { data_ = data; }
-inline void Tensor::set_shape(const std::vector<int64_t> &shape) { shape_ = shape; }
+inline void Tensor::set_shape(const std::vector<int64_t> &shape) {
+    shape_ = shape;
+}
 inline void Tensor::set_dim(const type_dim dim) { dim_ = dim; }
 
-inline bool Tensor::is_constant() const { return kind_ == Tensor_kind::constant; }
+inline bool Tensor::is_constant() const {
+    return kind_ == Tensor_kind::constant;
+}
 
 } // namespace tensor_compiler
 
