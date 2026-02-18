@@ -19,7 +19,6 @@ class Node {
     using value_id = std::size_t;
     using Attributes = std::unordered_map<std::string, Attribute>;
     using name_t = google::protobuf::RepeatedPtrField<std::string>;
-    using attr_t = google::protobuf::RepeatedPtrField<onnx::AttributeProto>;
 
   private:
     node_id id_;
@@ -109,18 +108,21 @@ inline void Node::parse_attributes(const onnx::NodeProto &node) {
         const std::string &name = attr.name();
 
         switch (attr.type()) {
-        case onnx::AttributeProto_AttributeType_FLOAT:
+        case onnx::AttributeProto_AttributeType_FLOAT: {
             set_attribute(name, attr.f());
             break;
+        }
 
-        case onnx::AttributeProto_AttributeType_INT:
+        case onnx::AttributeProto_AttributeType_INT: {
             set_attribute(name, static_cast<int64_t>(attr.i()));
             break;
+        }
 
-        case onnx::AttributeProto_AttributeType_STRING:
-            set_attribute(name, attr.s());
+        case onnx::AttributeProto_AttributeType_STRING: {
+           set_attribute(name, attr.s());
             break;
-
+        }
+        
         case onnx::AttributeProto_AttributeType_FLOATS: {
             std::vector<float> v;
             v.reserve(attr.floats_size());
