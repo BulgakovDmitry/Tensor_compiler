@@ -75,8 +75,12 @@ inline void Graph::add_tensor(Tensor tensor) {
 
 inline void Graph::add_node(Node node) { nodes_.push_back(std::move(node)); }
 
-inline void Graph::add_input(const std::string &input) { inputs_.push_back(input); }
-inline void Graph::add_output(const std::string &output) { outputs_.push_back(output); }
+inline void Graph::add_input(const std::string &input) {
+    inputs_.push_back(input);
+}
+inline void Graph::add_output(const std::string &output) {
+    outputs_.push_back(output);
+}
 
 inline const Tensor *Graph::get_tensor(const std::string &name) const {
     auto it = tensors_.find(name);

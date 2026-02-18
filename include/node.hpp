@@ -38,7 +38,7 @@ class Node {
     node_id get_id() const;
     const std::string &get_opcode() const;
     const std::string &get_name() const;
-    
+
     const std::vector<std::string> &get_inputs() const;
     const std::vector<std::string> &get_outputs() const;
     const Attributes &get_attributes() const;
@@ -146,8 +146,12 @@ inline void Node::parse_attributes(const onnx::NodeProto &node) {
     }
 }
 
-inline void Node::add_input(const std::string &input) { inputs_.push_back(input); }
-inline void Node::add_output(const std::string &output) { outputs_.push_back(output); }
+inline void Node::add_input(const std::string &input) {
+    inputs_.push_back(input);
+}
+inline void Node::add_output(const std::string &output) {
+    outputs_.push_back(output);
+}
 
 inline void Node::set_attribute(const std::string &name,
                                 const Attribute::AttrValue &value) {

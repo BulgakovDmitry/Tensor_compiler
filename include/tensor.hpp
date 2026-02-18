@@ -24,7 +24,7 @@ class Tensor {
     std::string name_;
     int type_ = data_type::TensorProto_DataType_UNDEFINED;
     Tensor_kind kind_ = Tensor_kind::unknown;
-    
+
     std::string data_;
     std::vector<int64_t> shape_;
     dim_type dim_;

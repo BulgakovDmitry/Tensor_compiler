@@ -1,8 +1,8 @@
 #include "driver.hpp"
 #include "graph.hpp"
 #include "onnx.pb.h"
-#include <fstream>
 #include <cstring>
+#include <fstream>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <iostream>
 #include <string>
@@ -24,7 +24,8 @@ static Tensor::dim_type extract_dims(const onnx::ValueInfoProto &v) {
     const auto &shape = v.type().tensor_type().shape();
     for (int i = 0; i < shape.dim_size(); ++i) {
         const auto &d = shape.dim(i);
-        int64_t val = d.has_dim_value() ? static_cast<int64_t>(d.dim_value()) : -1;
+        int64_t val =
+            d.has_dim_value() ? static_cast<int64_t>(d.dim_value()) : -1;
         dims.Add(val);
     }
     return dims;
@@ -37,13 +38,15 @@ static std::string extract_tensor_bytes(const onnx::TensorProto &t) {
     std::string out;
 
     if (t.float_data_size() > 0) {
-        out.resize(sizeof(float) * static_cast<std::size_t>(t.float_data_size()));
+        out.resize(sizeof(float) *
+                   static_cast<std::size_t>(t.float_data_size()));
         std::memcpy(out.data(), t.float_data().data(), out.size());
         return out;
     }
 
     if (t.int64_data_size() > 0) {
-        out.resize(sizeof(int64_t) * static_cast<std::size_t>(t.int64_data_size()));
+        out.resize(sizeof(int64_t) *
+                   static_cast<std::size_t>(t.int64_data_size()));
         std::memcpy(out.data(), t.int64_data().data(), out.size());
         return out;
     }
@@ -84,7 +87,7 @@ Graph build_compute_graph(const onnx::GraphProto &graph) {
 
         for (const auto &in_name : new_node.get_inputs()) {
             if (in_name.empty())
-                continue; 
+                continue;
             if (!compute_graph.get_tensor(in_name)) {
                 Tensor t{};
                 t.set_name(in_name);
@@ -141,8 +144,9 @@ int driver(const std::string &model_onnx) {
 
     auto compute_graph = build_compute_graph(g);
 
-    // std::cout << "Compute graph tensors: " << compute_graph.get_tensors().size() << "\n";
-    // std::cout << "Compute graph nodes:   " << compute_graph.get_nodes().size() << "\n";
+    // std::cout << "Compute graph tensors: " <<
+    // compute_graph.get_tensors().size() << "\n"; std::cout << "Compute graph
+    // nodes:   " << compute_graph.get_nodes().size() << "\n";
 
     return 0;
 }
