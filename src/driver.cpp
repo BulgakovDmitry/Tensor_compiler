@@ -7,7 +7,7 @@
 
 tensor_compiler::Graph
 tensor_compiler::build_compute_graph(const onnx::GraphProto &graph) {
-    Graph compute_graph(graph.get_name());
+    Graph compute_graph(graph.name());
 
     for (const auto &initializer : graph.initializer()) {
         Tensor tensor{};
