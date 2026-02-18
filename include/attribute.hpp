@@ -8,15 +8,17 @@
 namespace tensor_compiler {
 
 class Attribute {
+  public:
+  using AttrValue = std::variant<float, int64_t, std::string,
+                                 std::vector<float>, std::vector<int64_t>>;
   private:
     std::string name_;
 
-    using AttrValue = std::variant<float, int64_t, std::string,
-                                   std::vector<float>, std::vector<int64_t>>;
 
     AttrValue value;
 
   public:
+    Attribute() = default;
     Attribute(const std::string &name, const AttrValue &value)
         : name_{name}, value{value} {}
 
