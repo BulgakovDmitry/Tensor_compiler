@@ -16,7 +16,7 @@
 namespace tensor_compiler {
 
 using T_map = std::unordered_map<std::string, Tensor>;
-    
+
 class Graph {
   private:
     std::string name_;
@@ -24,7 +24,7 @@ class Graph {
     std::vector<Node> nodes_;
     std::vector<value_id> inputs_;
     std::vector<value_id> outputs_;
-    
+
   public:
     Graph() = default;
     Graph(const std::string &name) : name_{name} {}
@@ -43,7 +43,6 @@ class Graph {
     void add_node(Node node);
     void add_input(const value_id input);
     void add_output(const value_id output);
-
 
     const Tensor *get_tensor(const std::string &name) const;
 

@@ -18,8 +18,8 @@ enum class Tensor_kind {
 class Tensor {
   public:
     using data_type = onnx::TensorProto_DataType;
-  private:
 
+  private:
     std::string name_;
     data_type type_ = data_type::TensorProto_DataType_UNDEFINED;
     Tensor_kind kind_ = Tensor_kind::unknown;

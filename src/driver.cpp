@@ -5,7 +5,8 @@
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <iostream>
 
-tensor_compiler::Graph tensor_compiler::build_compute_graph(const onnx::GraphProto& graph) {
+tensor_compiler::Graph
+tensor_compiler::build_compute_graph(const onnx::GraphProto &graph) {
     Graph compute_graph(graph.get_name());
 
     for (const auto &initializer : graph.initializer()) {

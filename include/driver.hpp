@@ -17,7 +17,7 @@ namespace tensor_compiler {
  * @param graph
  * @return Graph
  */
-Graph build_compute_graph(const onnx::GraphProto& graph);
+Graph build_compute_graph(const onnx::GraphProto &graph);
 
 /**
  * @brief Loads and parses an ONNX model file
