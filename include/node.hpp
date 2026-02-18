@@ -119,10 +119,10 @@ inline void Node::parse_attributes(const onnx::NodeProto &node) {
         }
 
         case onnx::AttributeProto_AttributeType_STRING: {
-           set_attribute(name, attr.s());
+            set_attribute(name, attr.s());
             break;
         }
-        
+
         case onnx::AttributeProto_AttributeType_FLOATS: {
             std::vector<float> v;
             v.reserve(attr.floats_size());
