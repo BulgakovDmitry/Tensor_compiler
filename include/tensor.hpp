@@ -28,8 +28,7 @@ class Tensor {
   public:
     Tensor(const std::string &name, data_type &type, std::vector<int64_t> shape,
            std::vector<char> &data, Tensor_kind kind = Tensor_kind::unknown)
-        : name_{name}, type_{type}, kind_{kind}, data_{data},
-          shape_{shape} {}
+        : name_{name}, type_{type}, kind_{kind}, data_{data}, shape_{shape} {}
 
     const std::string &get_name() const;
     data_type get_type() const;
