@@ -1,7 +1,7 @@
 #include "driver.hpp"
-#include "structure/graph.hpp"
 #include "handlers.hpp"
 #include "onnx.pb.h"
+#include "structure/graph.hpp"
 #include <cstring>
 #include <fstream>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
