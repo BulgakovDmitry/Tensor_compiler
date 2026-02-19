@@ -13,20 +13,20 @@
 
 namespace tensor_compiler {
 
-using node_id = std::size_t;
-using value_id = std::size_t;
-using Attributes = std::unordered_map<std::string, Attribute>;
-
-static constexpr value_id invalid_value = static_cast<value_id>(-1);
-
 class Node {
+  public:
+    using node_id = std::size_t;
+    using Attributes = std::unordered_map<std::string, Attribute>;
+    using name_t = google::protobuf::RepeatedPtrField<std::string>;
+
   private:
-    node_id id_;
+    node_id id_{0};
     std::string opcode_;
     std::string name_;
 
-    std::vector<value_id> inputs_;
-    std::vector<value_id> outputs_;
+    std::vector<std::string> inputs_;
+    std::vector<std::string> outputs_;
+
     Attributes attributes_;
 
   public:
@@ -38,79 +38,128 @@ class Node {
     node_id get_id() const;
     const std::string &get_opcode() const;
     const std::string &get_name() const;
-    const std::vector<value_id> &get_inputs() const;
-    const std::vector<value_id> &get_outputs() const;
+
+    const std::vector<std::string> &get_inputs() const;
+    const std::vector<std::string> &get_outputs() const;
     const Attributes &get_attributes() const;
 
-    void set_inputs(const std::vector<value_id> &inputs);
-    void set_outputs(const std::vector<value_id> &outputs);
+    void set_inputs(const std::vector<std::string> &inputs);
+    void set_inputs(const name_t &inputs);
+
+    void set_outputs(const std::vector<std::string> &outputs);
+    void set_outputs(const name_t &outputs);
+
     void parse_attributes(const onnx::NodeProto &node);
 
-    template <typename T> void set_attribute(const std::string &name, T value);
+    void set_attribute(const std::string &name,
+                       const Attribute::AttrValue &value);
 
     bool has_attribute(const std::string &name) const;
 
-    bool replace_input(value_id old_input, value_id new_input);
-    bool replace_output(value_id old_output, value_id new_output);
-
   private:
-    void add_input(value_id input);
-    void add_output(value_id output);
+    void add_input(const std::string &input);
+    void add_output(const std::string &output);
 };
 
 // ----------------------------------------------------------------------------
 // @section Implementations
 // Implementation of node methods.
 // ----------------------------------------------------------------------------
-void Node::set_name(const std::string &name) { name_ = name; }
+inline void Node::set_name(const std::string &name) { name_ = name; }
 
-node_id Node::get_id() const { return id_; }
-const std::string &Node::get_opcode() const { return opcode_; }
-const std::string &Node::get_name() const { return name_; }
-const std::vector<value_id> &Node::get_inputs() const { return inputs_; }
-const std::vector<value_id> &Node::get_outputs() const { return outputs_; }
-const Attributes &Node::get_attributes() const { return attributes_; }
+inline Node::node_id Node::get_id() const { return id_; }
+inline const std::string &Node::get_opcode() const { return opcode_; }
+inline const std::string &Node::get_name() const { return name_; }
+inline const std::vector<std::string> &Node::get_inputs() const {
+    return inputs_;
+}
+inline const std::vector<std::string> &Node::get_outputs() const {
+    return outputs_;
+}
+inline const Node::Attributes &Node::get_attributes() const {
+    return attributes_;
+}
 
-void Node::set_inputs(const std::vector<value_id> &inputs) { inputs_ = inputs; }
+inline void Node::set_inputs(const std::vector<std::string> &inputs) {
+    inputs_ = inputs;
+}
 
-void Node::set_outputs(const std::vector<value_id> &outputs) {
+inline void Node::set_inputs(const name_t &inputs) {
+    inputs_.clear();
+    inputs_.reserve(static_cast<std::size_t>(inputs.size()));
+    for (const auto &s : inputs)
+        inputs_.push_back(s);
+}
+
+inline void Node::set_outputs(const std::vector<std::string> &outputs) {
     outputs_ = outputs;
 }
 
-void Node::parse_attributes(const onnx::NodeProto &node) {
-    // TODO
+inline void Node::set_outputs(const name_t &outputs) {
+    outputs_.clear();
+    outputs_.reserve(static_cast<std::size_t>(outputs.size()));
+    for (const auto &s : outputs)
+        outputs_.push_back(s);
 }
 
-void Node::add_input(value_id input) { inputs_.push_back(input); }
-void Node::add_output(value_id output) { outputs_.push_back(output); }
+inline void Node::parse_attributes(const onnx::NodeProto &node) {
+    for (const auto &attr : node.attribute()) {
+        const std::string &name = attr.name();
 
-template <class T> void Node::set_attribute(const std::string &name, T value) {
-    auto &a = attributes_[name];
-    a.set_value(value);
+        switch (attr.type()) {
+        case onnx::AttributeProto_AttributeType_FLOAT: {
+            set_attribute(name, attr.f());
+            break;
+        }
+
+        case onnx::AttributeProto_AttributeType_INT: {
+            set_attribute(name, static_cast<int64_t>(attr.i()));
+            break;
+        }
+
+        case onnx::AttributeProto_AttributeType_STRING: {
+            set_attribute(name, attr.s());
+            break;
+        }
+
+        case onnx::AttributeProto_AttributeType_FLOATS: {
+            std::vector<float> v;
+            v.reserve(attr.floats_size());
+            for (int i = 0; i < attr.floats_size(); ++i)
+                v.push_back(attr.floats(i));
+            set_attribute(name, v);
+            break;
+        }
+
+        case onnx::AttributeProto_AttributeType_INTS: {
+            std::vector<int64_t> v;
+            v.reserve(attr.ints_size());
+            for (int i = 0; i < attr.ints_size(); ++i)
+                v.push_back(static_cast<int64_t>(attr.ints(i)));
+            set_attribute(name, v);
+            break;
+        }
+
+        default:
+            break;
+        }
+    }
 }
 
-bool Node::has_attribute(const std::string &name) const {
+inline void Node::add_input(const std::string &input) {
+    inputs_.push_back(input);
+}
+inline void Node::add_output(const std::string &output) {
+    outputs_.push_back(output);
+}
+
+inline void Node::set_attribute(const std::string &name,
+                                const Attribute::AttrValue &value) {
+    attributes_[name] = Attribute{name, value};
+}
+
+inline bool Node::has_attribute(const std::string &name) const {
     return attributes_.find(name) != attributes_.end();
-}
-
-bool Node::replace_input(value_id old_input, value_id new_input) {
-    for (auto &input : inputs_) {
-        if (input == old_input) {
-            input = new_input;
-            return true;
-        }
-    }
-    return false;
-}
-
-bool Node::replace_output(value_id old_output, value_id new_output) {
-    for (auto &output : outputs_) {
-        if (output == old_output) {
-            output = new_output;
-            return true;
-        }
-    }
-    return false;
 }
 
 } // namespace tensor_compiler

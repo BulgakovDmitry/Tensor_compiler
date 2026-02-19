@@ -18,15 +18,16 @@ enum class Tensor_kind {
 class Tensor {
   public:
     using data_type = onnx::TensorProto_DataType;
-    using type_dim = google::protobuf::RepeatedField<long int>;
+    using dim_type = google::protobuf::RepeatedField<int64_t>;
 
   private:
     std::string name_;
     int type_ = data_type::TensorProto_DataType_UNDEFINED;
     Tensor_kind kind_ = Tensor_kind::unknown;
+
     std::string data_;
     std::vector<int64_t> shape_;
-    type_dim dim_;
+    dim_type dim_;
 
   public:
     Tensor() = default;
@@ -39,14 +40,14 @@ class Tensor {
     Tensor_kind get_kind() const;
     const std::string &get_data() const;
     const std::vector<int64_t> &get_shape() const;
-    const type_dim get_dim() const;
+    const dim_type get_dim() const;
 
     void set_name(const std::string &name);
     void set_type(const int type);
     void set_kind(Tensor_kind kind);
     void set_data(const std::string &data);
     void set_shape(const std::vector<int64_t> &shape);
-    void set_dim(const type_dim dim);
+    void set_dim(const dim_type dim);
 
     bool is_constant() const;
 };
@@ -60,7 +61,7 @@ inline const int Tensor::get_type() const { return type_; }
 inline const std::string &Tensor::get_data() const { return data_; }
 inline const std::vector<int64_t> &Tensor::get_shape() const { return shape_; }
 inline Tensor_kind Tensor::get_kind() const { return kind_; }
-inline const Tensor::type_dim Tensor::get_dim() const { return dim_; }
+inline const Tensor::dim_type Tensor::get_dim() const { return dim_; }
 
 inline void Tensor::set_name(const std::string &name) { name_ = name; }
 inline void Tensor::set_type(const int type) { type_ = type; }
@@ -69,7 +70,7 @@ inline void Tensor::set_data(const std::string &data) { data_ = data; }
 inline void Tensor::set_shape(const std::vector<int64_t> &shape) {
     shape_ = shape;
 }
-inline void Tensor::set_dim(const type_dim dim) { dim_ = dim; }
+inline void Tensor::set_dim(const dim_type dim) { dim_ = dim; }
 
 inline bool Tensor::is_constant() const {
     return kind_ == Tensor_kind::constant;
