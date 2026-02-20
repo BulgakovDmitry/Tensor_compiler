@@ -36,30 +36,31 @@ class Executor {
 
         return output_values;
     }
-private:
+
+  private:
     /**
-    * @brief Loads input values to tensor_values_
-    *
-    * @param input_values
-    * @return void
-    */
+     * @brief Loads input values to tensor_values_
+     *
+     * @param input_values
+     * @return void
+     */
     void load_inputs(const std::unordered_map<std::string, std::vector<float>>
-                      &input_values) {
+                         &input_values) {
         for (const auto &input_name : graph_.get_inputs()) {
             auto it = input_values.find(input_name);
             if (it == input_values.end())
                 throw std::runtime_error("Missing input value for : " +
                                          input_name);
 
-            auto input_tensor = Tensor::create(input_name,
-                                                graph_.get_tensor(input_name)->get_shape(),
-                                                it->second, Tensor_kind::input);
+            auto input_tensor = Tensor::create(
+                input_name, graph_.get_tensor(input_name)->get_shape(),
+                it->second, Tensor_kind::input);
             tensor_values_[input_name] = std::move(input_tensor);
         }
     }
 
-    std::vector<const Node*> topological_sort() {
-        std::unordered_map<std::string, const Node*> producer_of;
+    std::vector<const Node *> topological_sort() {
+        std::unordered_map<std::string, const Node *> producer_of;
         for (const auto &node : graph_.get_nodes()) {
             for (const auto &out : node.get_outputs())
                 producer_of[out] = &node;
