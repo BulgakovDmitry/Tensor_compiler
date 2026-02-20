@@ -1,0 +1,76 @@
+digraph G {
+    rankdir=TB;
+    node [style=filled, fontname="Helvetica", fontcolor=darkblue, fillcolor=peachpuff, color="#252A34", penwidth=2.5];
+    bgcolor="lemonchiffon";
+
+    tensor_Plus214_Output_0 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightgreen"><b>Plus214_Output_0</b></td></tr><tr><td align="left">type: float</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">output</td></tr></table>>, color="#252A34", penwidth=2.5];
+    tensor_Times212_Output_0 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="pink"><b>Times212_Output_0</b></td></tr><tr><td align="left">type: undefined</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">intermediate</td></tr></table>>, color="#252A34", penwidth=2.5];
+    tensor_Parameter193_reshape1 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="pink"><b>Parameter193_reshape1</b></td></tr><tr><td align="left">type: undefined</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">intermediate</td></tr></table>>, color="#252A34", penwidth=2.5];
+    tensor_Pooling160_Output_0_reshape0 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="pink"><b>Pooling160_Output_0_reshape0</b></td></tr><tr><td align="left">type: undefined</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">intermediate</td></tr></table>>, color="#252A34", penwidth=2.5];
+    tensor_Plus112_Output_0 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="pink"><b>Plus112_Output_0</b></td></tr><tr><td align="left">type: undefined</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">intermediate</td></tr></table>>, color="#252A34", penwidth=2.5];
+    tensor_Pooling160_Output_0 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="pink"><b>Pooling160_Output_0</b></td></tr><tr><td align="left">type: undefined</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">intermediate</td></tr></table>>, color="#252A34", penwidth=2.5];
+    tensor_Convolution110_Output_0 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="pink"><b>Convolution110_Output_0</b></td></tr><tr><td align="left">type: undefined</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">intermediate</td></tr></table>>, color="#252A34", penwidth=2.5];
+    tensor_Parameter87 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightgrey"><b>Parameter87</b></td></tr><tr><td align="left">type: float</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">constant</td></tr></table>>, color="#252A34", penwidth=2.5];
+    tensor_Parameter193 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightgrey"><b>Parameter193</b></td></tr><tr><td align="left">type: float</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">constant</td></tr></table>>, color="#252A34", penwidth=2.5];
+    tensor_Parameter88 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightgrey"><b>Parameter88</b></td></tr><tr><td align="left">type: float</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">constant</td></tr></table>>, color="#252A34", penwidth=2.5];
+    tensor_Input3 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightblue"><b>Input3</b></td></tr><tr><td align="left">type: float</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">input</td></tr></table>>, color="#252A34", penwidth=2.5];
+    tensor_Pooling160_Output_0_reshape0_shape [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightgrey"><b>Pooling160_Output_0_reshape0_shape</b></td></tr><tr><td align="left">type: int64</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">constant</td></tr></table>>, color="#252A34", penwidth=2.5];
+    tensor_Parameter194 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightgrey"><b>Parameter194</b></td></tr><tr><td align="left">type: float</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">constant</td></tr></table>>, color="#252A34", penwidth=2.5];
+    tensor_Parameter193_reshape1_shape [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightgrey"><b>Parameter193_reshape1_shape</b></td></tr><tr><td align="left">type: int64</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">constant</td></tr></table>>, color="#252A34", penwidth=2.5];
+    tensor_Convolution28_Output_0 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="pink"><b>Convolution28_Output_0</b></td></tr><tr><td align="left">type: undefined</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">intermediate</td></tr></table>>, color="#252A34", penwidth=2.5];
+    tensor_Parameter6 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightgrey"><b>Parameter6</b></td></tr><tr><td align="left">type: float</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">constant</td></tr></table>>, color="#252A34", penwidth=2.5];
+    tensor_Plus30_Output_0 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="pink"><b>Plus30_Output_0</b></td></tr><tr><td align="left">type: undefined</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">intermediate</td></tr></table>>, color="#252A34", penwidth=2.5];
+    tensor_Parameter5 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightgrey"><b>Parameter5</b></td></tr><tr><td align="left">type: float</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">constant</td></tr></table>>, color="#252A34", penwidth=2.5];
+    tensor_ReLU32_Output_0 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="pink"><b>ReLU32_Output_0</b></td></tr><tr><td align="left">type: undefined</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">intermediate</td></tr></table>>, color="#252A34", penwidth=2.5];
+    tensor_ReLU114_Output_0 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="pink"><b>ReLU114_Output_0</b></td></tr><tr><td align="left">type: undefined</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">intermediate</td></tr></table>>, color="#252A34", penwidth=2.5];
+    tensor_Pooling66_Output_0 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="pink"><b>Pooling66_Output_0</b></td></tr><tr><td align="left">type: undefined</td></tr><tr><td align="left">shape: []</td></tr><tr><td align="left">intermediate</td></tr></table>>, color="#252A34", penwidth=2.5];
+    node_Convolution28 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightcoral"><b>Conv</b></td></tr><tr><td align="left">name: Convolution28</td></tr><tr><td align="left">id: 0</td></tr><tr><td align="left">dilations=[1,1]</td></tr><tr><td align="left">group=1</td></tr><tr><td align="left">auto_pad="SAME_UPPER"</td></tr><tr><td align="left">strides=[1,1]</td></tr><tr><td align="left">kernel_shape=[5,5]</td></tr></table>>, color="#252A34", penwidth=2.5];
+    node_Plus30 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightcoral"><b>Add</b></td></tr><tr><td align="left">name: Plus30</td></tr><tr><td align="left">id: 1</td></tr></table>>, color="#252A34", penwidth=2.5];
+    node_ReLU32 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightcoral"><b>Relu</b></td></tr><tr><td align="left">name: ReLU32</td></tr><tr><td align="left">id: 2</td></tr></table>>, color="#252A34", penwidth=2.5];
+    node_Pooling66 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightcoral"><b>MaxPool</b></td></tr><tr><td align="left">name: Pooling66</td></tr><tr><td align="left">id: 3</td></tr><tr><td align="left">auto_pad="NOTSET"</td></tr><tr><td align="left">pads=[0,0,0,0]</td></tr><tr><td align="left">strides=[2,2]</td></tr><tr><td align="left">kernel_shape=[2,2]</td></tr></table>>, color="#252A34", penwidth=2.5];
+    node_Convolution110 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightcoral"><b>Conv</b></td></tr><tr><td align="left">name: Convolution110</td></tr><tr><td align="left">id: 4</td></tr><tr><td align="left">dilations=[1,1]</td></tr><tr><td align="left">group=1</td></tr><tr><td align="left">auto_pad="SAME_UPPER"</td></tr><tr><td align="left">strides=[1,1]</td></tr><tr><td align="left">kernel_shape=[5,5]</td></tr></table>>, color="#252A34", penwidth=2.5];
+    node_Plus112 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightcoral"><b>Add</b></td></tr><tr><td align="left">name: Plus112</td></tr><tr><td align="left">id: 5</td></tr></table>>, color="#252A34", penwidth=2.5];
+    node_ReLU114 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightcoral"><b>Relu</b></td></tr><tr><td align="left">name: ReLU114</td></tr><tr><td align="left">id: 6</td></tr></table>>, color="#252A34", penwidth=2.5];
+    node_Pooling160 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightcoral"><b>MaxPool</b></td></tr><tr><td align="left">name: Pooling160</td></tr><tr><td align="left">id: 7</td></tr><tr><td align="left">auto_pad="NOTSET"</td></tr><tr><td align="left">pads=[0,0,0,0]</td></tr><tr><td align="left">strides=[3,3]</td></tr><tr><td align="left">kernel_shape=[3,3]</td></tr></table>>, color="#252A34", penwidth=2.5];
+    node_Times212_reshape0 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightcoral"><b>Reshape</b></td></tr><tr><td align="left">name: Times212_reshape0</td></tr><tr><td align="left">id: 8</td></tr></table>>, color="#252A34", penwidth=2.5];
+    node_Times212_reshape1 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightcoral"><b>Reshape</b></td></tr><tr><td align="left">name: Times212_reshape1</td></tr><tr><td align="left">id: 9</td></tr></table>>, color="#252A34", penwidth=2.5];
+    node_Times212 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightcoral"><b>MatMul</b></td></tr><tr><td align="left">name: Times212</td></tr><tr><td align="left">id: 10</td></tr></table>>, color="#252A34", penwidth=2.5];
+    node_Plus214 [shape=plaintext, label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4"><tr><td bgcolor="lightcoral"><b>Add</b></td></tr><tr><td align="left">name: Plus214</td></tr><tr><td align="left">id: 11</td></tr></table>>, color="#252A34", penwidth=2.5];
+
+    tensor_Input3 -> node_Convolution28;
+    tensor_Parameter5 -> node_Convolution28;
+    node_Convolution28 -> tensor_Convolution28_Output_0;
+    tensor_Convolution28_Output_0 -> node_Plus30;
+    tensor_Parameter6 -> node_Plus30;
+    node_Plus30 -> tensor_Plus30_Output_0;
+    tensor_Plus30_Output_0 -> node_ReLU32;
+    node_ReLU32 -> tensor_ReLU32_Output_0;
+    tensor_ReLU32_Output_0 -> node_Pooling66;
+    node_Pooling66 -> tensor_Pooling66_Output_0;
+    tensor_Pooling66_Output_0 -> node_Convolution110;
+    tensor_Parameter87 -> node_Convolution110;
+    node_Convolution110 -> tensor_Convolution110_Output_0;
+    tensor_Convolution110_Output_0 -> node_Plus112;
+    tensor_Parameter88 -> node_Plus112;
+    node_Plus112 -> tensor_Plus112_Output_0;
+    tensor_Plus112_Output_0 -> node_ReLU114;
+    node_ReLU114 -> tensor_ReLU114_Output_0;
+    tensor_ReLU114_Output_0 -> node_Pooling160;
+    node_Pooling160 -> tensor_Pooling160_Output_0;
+    tensor_Pooling160_Output_0 -> node_Times212_reshape0;
+    tensor_Pooling160_Output_0_reshape0_shape -> node_Times212_reshape0;
+    node_Times212_reshape0 -> tensor_Pooling160_Output_0_reshape0;
+    tensor_Parameter193 -> node_Times212_reshape1;
+    tensor_Parameter193_reshape1_shape -> node_Times212_reshape1;
+    node_Times212_reshape1 -> tensor_Parameter193_reshape1;
+    tensor_Pooling160_Output_0_reshape0 -> node_Times212;
+    tensor_Parameter193_reshape1 -> node_Times212;
+    node_Times212 -> tensor_Times212_Output_0;
+    tensor_Times212_Output_0 -> node_Plus214;
+    tensor_Parameter194 -> node_Plus214;
+    node_Plus214 -> tensor_Plus214_Output_0;
+
+    // Mark graph inputs and outputs
+    tensor_Input3 [peripheries=2];
+    tensor_Plus214_Output_0 [peripheries=2];
+}

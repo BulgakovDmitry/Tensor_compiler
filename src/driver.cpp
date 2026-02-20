@@ -2,6 +2,8 @@
 #include "handlers.hpp"
 #include "onnx.pb.h"
 #include "structure/graph.hpp"
+#include "graphviz_dumper.hpp"
+#include "dump_path_gen.hpp"
 #include <cstring>
 #include <fstream>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
@@ -9,6 +11,8 @@
 #include <string>
 
 namespace tensor_compiler {
+
+// #define GRAPH_DUMP
 
 Graph build_compute_graph(const onnx::GraphProto &graph) {
     Graph compute_graph(graph.name());
@@ -59,7 +63,7 @@ int driver(const std::string &model_onnx) {
 
 #ifdef GRAPH_DUMP
     // ____________GRAPH DUMP___________ //
-    const auto paths = language::make_dump_paths();
+    const auto paths = tensor_compiler::make_dump_paths();
     const std::string gv_file = paths.gv.string();
     const std::string svg_file = paths.svg.string();
     // dot dump/dump.gv -Tsvg -o dump/dump.svg
@@ -68,12 +72,8 @@ int driver(const std::string &model_onnx) {
     if (!gv) {
         throw std::runtime_error("unable to open gv file\n");
     }
-    Graphviz_dumper::dump(gv, nullptr);
+    Graphviz_dumper::dump(compute_graph, gv);
 #endif
-
-    // std::cout << "Compute graph tensors: " <<
-    // compute_graph.get_tensors().size() << "\n"; std::cout << "Compute graph
-    // nodes:   " << compute_graph.get_nodes().size() << "\n";
 
     return 0;
 }
