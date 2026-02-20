@@ -44,7 +44,7 @@ This produces the following `graph` representation:
 <summary>example of generated graph</summary>
   
 <div align="center">
-  <img src="img/graph_dump.svg" alt="Dump Banner" width="1200">
+  <img src="img/dump_mnist_12_onnx.svg" alt="Dump Banner" width="1200">
 </div>
 
 </details>
