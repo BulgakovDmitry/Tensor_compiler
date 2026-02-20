@@ -164,7 +164,7 @@ class Graphviz_dumper {
     }
 
     static void dump_attributes(const Node::Attributes &attrs, std::ostream &gv,
-                         std::string &label) {
+                                std::string &label) {
         label += " | attributes: ";
         bool first = true;
         for (const auto &[attr_name, attr] : attrs) {
