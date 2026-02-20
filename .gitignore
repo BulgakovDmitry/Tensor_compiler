@@ -2,3 +2,5 @@
 build/
 onnx/onnx.pb.h
 onnx/onnx.pb.cc
+
+dump/
