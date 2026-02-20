@@ -14,8 +14,8 @@
 - [Project structure](#project-structure)
 - [Project authors](#project-authors)
 
-## Running the program 🛡️
-Repository cloning, build and compilation is performed using the following commands:
+## <a id="running-the-program"></a>Running the program 🛡️
+Repository `cloning`, `build` and `compilation` is performed using the following commands:
 
 ```
 git clone git@github.com:BulgakovDmitry/Tensor_compiler.git
@@ -24,12 +24,12 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
-Program execution is performed in the following format:
+Program `execution` is performed in the following format:
 ```
 ./build/tensor_compiler <model.onnx>
 ```
 
-## Using dump 🏰
+## <a id="using-dump"></a>Using dump 🏰
 To enable the graph dump option for the `compute graph`, you need to set the `-GRAPH_DUMP` flag, which is disabled by default:
 ```bash
 cmake -S . -B build -DGRAPH_DUMP=ON
@@ -49,7 +49,7 @@ This produces the following `graph` representation:
 
 </details>
 
-## Project structure 🏯
+## <a id="project-structure"></a>Project structure 🏯
 
 <details>
 <summary>Project structure</summary>
@@ -77,7 +77,7 @@ This produces the following `graph` representation:
 
 </details>
 
-## Project authors 🧙‍♂️
+## <a id="project-authors"></a>Project authors 🧙‍♂️
 
 <div align="center">
 
