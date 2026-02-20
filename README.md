@@ -1,6 +1,6 @@
 <div align="center">
 
-# Tensor compiler in C++
+# ⚔️🐉 Tensor compiler in C++ 🐉⚔️
   ![C++](https://img.shields.io/badge/C++-23-blue?style=for-the-badge&logo=cplusplus)
   ![CMake](https://img.shields.io/badge/CMake-3.20+-green?style=for-the-badge&logo=cmake)
   ![Testing](https://img.shields.io/badge/Google_Test-Framework-red?style=for-the-badge&logo=google)
@@ -8,13 +8,13 @@
   
 </div>
 
-## Table of Contents
+## Table of Contents 📖
 - [Running the program](#running-the-program)
 - [Using dump](#using-dump)
 - [Project structure](#project-structure)
 - [Project authors](#project-authors)
 
-## Running the program
+## Running the program 🛡️
 Repository cloning, build and compilation is performed using the following commands:
 
 ```
@@ -29,7 +29,7 @@ Program execution is performed in the following format:
 ./build/tensor_compiler <model.onnx>
 ```
 
-## Using dump
+## Using dump 🏰
 To enable the graph dump option for the `compute graph`, you need to set the `-GRAPH_DUMP` flag, which is disabled by default:
 ```bash
 cmake -S . -B build -DGRAPH_DUMP=ON
@@ -49,7 +49,7 @@ This produces the following `graph` representation:
 
 </details>
 
-## Project structure
+## Project structure 🏯
 
 <details>
 <summary>Project structure</summary>
@@ -77,7 +77,7 @@ This produces the following `graph` representation:
 
 </details>
 
-## Project authors
+## Project authors 🧙‍♂️
 
 <div align="center">
 
