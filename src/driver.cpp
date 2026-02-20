@@ -54,10 +54,22 @@ int driver(const std::string &model_onnx) {
     }
 
     const auto &g = model.graph();
-    std::cout << "Graph '" << g.name() << "' loaded.\n";
-    std::cout << "Number of nodes: " << g.node_size() << "\n";
 
     auto compute_graph = build_compute_graph(g);
+
+#ifdef GRAPH_DUMP
+    // ____________GRAPH DUMP___________ //
+    const auto paths = language::make_dump_paths();
+    const std::string gv_file = paths.gv.string();
+    const std::string svg_file = paths.svg.string();
+    // dot dump/dump.gv -Tsvg -o dump/dump.svg
+
+    std::ofstream gv(gv_file);
+    if (!gv) {
+        throw std::runtime_error("unable to open gv file\n");
+    }
+    Graphviz_dumper::dump(gv, nullptr);
+#endif
 
     // std::cout << "Compute graph tensors: " <<
     // compute_graph.get_tensors().size() << "\n"; std::cout << "Compute graph
