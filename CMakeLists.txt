@@ -36,6 +36,12 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     include
 )
 
+option(GRAPH_DUMP "Enable Graphviz dump" OFF)
+
+if (GRAPH_DUMP)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE GRAPH_DUMP)
+endif()
+
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${PROTOBUF_LIBRARIES}
 )

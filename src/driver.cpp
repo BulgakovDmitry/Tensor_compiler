@@ -1,4 +1,6 @@
 #include "driver.hpp"
+#include "dump_path_gen.hpp"
+#include "graphviz_dumper.hpp"
 #include "handlers.hpp"
 #include "onnx.pb.h"
 #include "structure/graph.hpp"
@@ -54,14 +56,22 @@ int driver(const std::string &model_onnx) {
     }
 
     const auto &g = model.graph();
-    std::cout << "Graph '" << g.name() << "' loaded.\n";
-    std::cout << "Number of nodes: " << g.node_size() << "\n";
 
     auto compute_graph = build_compute_graph(g);
 
-    // std::cout << "Compute graph tensors: " <<
-    // compute_graph.get_tensors().size() << "\n"; std::cout << "Compute graph
-    // nodes:   " << compute_graph.get_nodes().size() << "\n";
+#ifdef GRAPH_DUMP
+    // ____________GRAPH DUMP___________ //
+    const auto paths = tensor_compiler::make_dump_paths();
+    const std::string gv_file = paths.gv.string();
+    const std::string svg_file = paths.svg.string();
+    // dot dump/dump.gv -Tsvg -o dump/dump.svg
+
+    std::ofstream gv(gv_file);
+    if (!gv) {
+        throw std::runtime_error("unable to open gv file\n");
+    }
+    Graphviz_dumper::dump(compute_graph, gv);
+#endif
 
     return 0;
 }
