@@ -49,24 +49,42 @@ static std::string escape_html(const std::string &s) {
 
 static std::string tensor_type_to_string(int type) {
     switch (type) {
-        case onnx::TensorProto_DataType_UNDEFINED: return "undefined";
-        case onnx::TensorProto_DataType_FLOAT:     return "float";
-        case onnx::TensorProto_DataType_UINT8:     return "uint8";
-        case onnx::TensorProto_DataType_INT8:      return "int8";
-        case onnx::TensorProto_DataType_UINT16:    return "uint16";
-        case onnx::TensorProto_DataType_INT16:     return "int16";
-        case onnx::TensorProto_DataType_INT32:     return "int32";
-        case onnx::TensorProto_DataType_INT64:     return "int64";
-        case onnx::TensorProto_DataType_STRING:    return "string";
-        case onnx::TensorProto_DataType_BOOL:      return "bool";
-        case onnx::TensorProto_DataType_FLOAT16:   return "float16";
-        case onnx::TensorProto_DataType_DOUBLE:    return "double";
-        case onnx::TensorProto_DataType_UINT32:    return "uint32";
-        case onnx::TensorProto_DataType_UINT64:    return "uint64";
-        case onnx::TensorProto_DataType_COMPLEX64: return "complex64";
-        case onnx::TensorProto_DataType_COMPLEX128: return "complex128";
-        case onnx::TensorProto_DataType_BFLOAT16:  return "bfloat16";
-        default: return "unknown";
+    case onnx::TensorProto_DataType_UNDEFINED:
+        return "undefined";
+    case onnx::TensorProto_DataType_FLOAT:
+        return "float";
+    case onnx::TensorProto_DataType_UINT8:
+        return "uint8";
+    case onnx::TensorProto_DataType_INT8:
+        return "int8";
+    case onnx::TensorProto_DataType_UINT16:
+        return "uint16";
+    case onnx::TensorProto_DataType_INT16:
+        return "int16";
+    case onnx::TensorProto_DataType_INT32:
+        return "int32";
+    case onnx::TensorProto_DataType_INT64:
+        return "int64";
+    case onnx::TensorProto_DataType_STRING:
+        return "string";
+    case onnx::TensorProto_DataType_BOOL:
+        return "bool";
+    case onnx::TensorProto_DataType_FLOAT16:
+        return "float16";
+    case onnx::TensorProto_DataType_DOUBLE:
+        return "double";
+    case onnx::TensorProto_DataType_UINT32:
+        return "uint32";
+    case onnx::TensorProto_DataType_UINT64:
+        return "uint64";
+    case onnx::TensorProto_DataType_COMPLEX64:
+        return "complex64";
+    case onnx::TensorProto_DataType_COMPLEX128:
+        return "complex128";
+    case onnx::TensorProto_DataType_BFLOAT16:
+        return "bfloat16";
+    default:
+        return "unknown";
     }
 }
 
