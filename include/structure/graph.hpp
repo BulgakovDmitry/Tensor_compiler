@@ -10,10 +10,9 @@
 
 namespace tensor_compiler {
 
-class Graph {
-  public:
-    using T_map = std::unordered_map<std::string, Tensor>;
+using T_map = std::unordered_map<std::string, Tensor>;
 
+class Graph {
   private:
     std::string name_;
     T_map tensors_;
@@ -51,7 +50,7 @@ class Graph {
 // Implementations
 // ----------------------------------------------------------------------------
 inline const std::string &Graph::get_name() const { return name_; }
-inline const Graph::T_map &Graph::get_tensors() const { return tensors_; }
+inline const T_map &Graph::get_tensors() const { return tensors_; }
 inline const std::vector<Node> &Graph::get_nodes() const { return nodes_; }
 inline const std::vector<std::string> &Graph::get_inputs() const {
     return inputs_;

@@ -15,11 +15,10 @@ enum class Tensor_kind {
     constant,
 };
 
-class Tensor {
-  public:
-    using data_type = onnx::TensorProto_DataType;
-    using dim_type = google::protobuf::RepeatedField<int64_t>;
+using data_type = onnx::TensorProto_DataType;
+using dim_type = google::protobuf::RepeatedField<int64_t>;
 
+class Tensor {
   private:
     std::string name_;
     int type_ = data_type::TensorProto_DataType_UNDEFINED;
@@ -31,9 +30,13 @@ class Tensor {
 
   public:
     Tensor() = default;
-    Tensor(const std::string &name, data_type &type, std::vector<int64_t> shape,
+    Tensor(const std::string &name, data_type type, std::vector<int64_t> shape,
            std::string &data, Tensor_kind kind = Tensor_kind::unknown)
         : name_{name}, type_{type}, kind_{kind}, data_{data}, shape_{shape} {}
+
+    static Tensor create(const std::string &name,
+                         const std::vector<int64_t> &shape,
+                         const std::vector<data_type> &data);
 
     const std::string &get_name() const;
     const int get_type() const;
@@ -56,12 +59,24 @@ class Tensor {
 // @section Implementations
 // Implementation of tensor methods.
 // ----------------------------------------------------------------------------
+static Tensor create(const std::string &name, std::vector<int64_t> &shape,
+                     std::vector<float> &data, Tensor_kind kind) {
+    std::string raw_data;
+    if (!data.empty()) {
+        raw_data.assign(reinterpret_cast<const char *>(data.data()),
+                        data.size() * sizeof(float));
+    }
+
+    return Tensor(name, data_type::TensorProto_DataType_FLOAT, shape, raw_data,
+                  kind);
+}
+
 inline const std::string &Tensor::get_name() const { return name_; }
 inline const int Tensor::get_type() const { return type_; }
 inline const std::string &Tensor::get_data() const { return data_; }
 inline const std::vector<int64_t> &Tensor::get_shape() const { return shape_; }
 inline Tensor_kind Tensor::get_kind() const { return kind_; }
-inline const Tensor::dim_type Tensor::get_dim() const { return dim_; }
+inline const dim_type Tensor::get_dim() const { return dim_; }
 
 inline void Tensor::set_name(const std::string &name) { name_ = name; }
 inline void Tensor::set_type(const int type) { type_ = type; }

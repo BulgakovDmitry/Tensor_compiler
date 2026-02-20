@@ -239,7 +239,7 @@ class Graphviz_dumper {
         gv << "\n";
     }
 
-    static void dump_attributes(const Node::Attributes &attrs,
+    static void dump_attributes(const Attributes &attrs,
                                 std::string &label) {
         for (const auto &[attr_name, attr] : attrs) {
             std::string attr_str = escape_html(attr_name) + "=";
