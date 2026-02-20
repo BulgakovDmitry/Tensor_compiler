@@ -77,9 +77,7 @@ inline const std::vector<std::string> &Node::get_inputs() const {
 inline const std::vector<std::string> &Node::get_outputs() const {
     return outputs_;
 }
-inline const Attributes &Node::get_attributes() const {
-    return attributes_;
-}
+inline const Attributes &Node::get_attributes() const { return attributes_; }
 
 inline void Node::set_inputs(const std::vector<std::string> &inputs) {
     inputs_ = inputs;
