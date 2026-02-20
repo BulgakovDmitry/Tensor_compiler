@@ -12,8 +12,6 @@
 
 namespace tensor_compiler {
 
-// #define GRAPH_DUMP
-
 Graph build_compute_graph(const onnx::GraphProto &graph) {
     Graph compute_graph(graph.name());
 
