@@ -13,8 +13,8 @@ static int extract_elem_type(const onnx::ValueInfoProto &v) {
     return v.type().tensor_type().elem_type();
 }
 
-static Tensor::dim_type extract_dims(const onnx::ValueInfoProto &v) {
-    Tensor::dim_type dims;
+static dim_type extract_dims(const onnx::ValueInfoProto &v) {
+    dim_type dims;
     if (!v.has_type() || !v.type().has_tensor_type() ||
         !v.type().tensor_type().has_shape())
         return dims;

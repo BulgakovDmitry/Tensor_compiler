@@ -13,10 +13,11 @@
 
 namespace tensor_compiler {
 
+using Attributes = std::unordered_map<std::string, Attribute>;
+
 class Node {
   public:
     using node_id = std::size_t;
-    using Attributes = std::unordered_map<std::string, Attribute>;
     using name_t = google::protobuf::RepeatedPtrField<std::string>;
 
   private:
@@ -76,9 +77,7 @@ inline const std::vector<std::string> &Node::get_inputs() const {
 inline const std::vector<std::string> &Node::get_outputs() const {
     return outputs_;
 }
-inline const Node::Attributes &Node::get_attributes() const {
-    return attributes_;
-}
+inline const Attributes &Node::get_attributes() const { return attributes_; }
 
 inline void Node::set_inputs(const std::vector<std::string> &inputs) {
     inputs_ = inputs;
