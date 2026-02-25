@@ -37,7 +37,7 @@ class Tensor {
     static Tensor create(const std::string &name,
                          const std::vector<int64_t> &shape,
                          const std::vector<float> &data,
-                         const Tensor_kind& kind);
+                         const Tensor_kind &kind);
 
     const std::string &get_name() const;
     const int get_type() const;
@@ -61,9 +61,9 @@ class Tensor {
 // Implementation of tensor methods.
 // ----------------------------------------------------------------------------
 inline Tensor Tensor::create(const std::string &name,
-                         const std::vector<int64_t> &shape,
-                         const std::vector<float> &data,
-                         const Tensor_kind& kind) {
+                             const std::vector<int64_t> &shape,
+                             const std::vector<float> &data,
+                             const Tensor_kind &kind) {
     std::string raw_data;
     if (!data.empty()) {
         raw_data.assign(reinterpret_cast<const char *>(data.data()),

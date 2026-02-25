@@ -26,13 +26,15 @@ class Executor {
         }
     }
 
-    // T_map execute(const std::unordered_map<std::string, std::vector<float>> //TODO
+    // T_map execute(const std::unordered_map<std::string, std::vector<float>>
+    // //TODO
     //                   &input_values) {
     //     load_inputs(input_values);
 
     //     topological_sort();
 
-    //     // ... + execution of all nodes and get output_values of compute graph
+    //     // ... + execution of all nodes and get output_values of compute
+    //     graph
 
     //     return output_values;
     // }
@@ -44,9 +46,8 @@ class Executor {
      * @param input_values
      * @return void
      */
-    void load_inputs(const std::unordered_map<std::string, 
-                    std::vector<float>>& input_values);
-    
+    void load_inputs(const std::unordered_map<std::string, std::vector<float>>
+                         &input_values);
 
     std::vector<const Node *> topological_sort() {
         std::unordered_map<std::string, const Node *> producer_of;
@@ -59,22 +60,20 @@ class Executor {
     }
 };
 
-
 // ----------------------------------------------------------------------------
 // @section Implementations
 // Implementation of executor methods.
 // ----------------------------------------------------------------------------
-inline void Executor::load_inputs(const std::unordered_map<std::string, 
-                        std::vector<float>>& input_values) {
+inline void Executor::load_inputs(
+    const std::unordered_map<std::string, std::vector<float>> &input_values) {
     for (const auto &input_name : graph_.get_inputs()) {
         auto it = input_values.find(input_name);
         if (it == input_values.end())
-            throw std::runtime_error("Missing input value for : " +
-                                        input_name);
+            throw std::runtime_error("Missing input value for : " + input_name);
 
         auto input_tensor = Tensor::create(
-            input_name, graph_.get_tensor(input_name)->get_shape(),
-            it->second, Tensor_kind::input);
+            input_name, graph_.get_tensor(input_name)->get_shape(), it->second,
+            Tensor_kind::input);
         tensor_values_[input_name] = std::move(input_tensor);
     }
 }
