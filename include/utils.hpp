@@ -10,7 +10,15 @@
 
 namespace tensor_compiler {
 
-inline void topological_dump(const Graph &graph, std::ostream &os) {
+struct Edge_hash {
+    std::size_t operator()(const std::pair<const Node*, const Node*>& e) const noexcept {
+        auto h1 = std::hash<const Node*>{}(e.first);
+        auto h2 = std::hash<const Node*>{}(e.second);
+        return h1 ^ (h2 + 0x9e3779b97f4a7c15ULL + (h1 << 6) + (h1 >> 2));
+    }
+};
+
+inline void dump_tensors(const Graph& graph, std::ostream& os) {
     os << "Graph name: " << graph.get_name() << "\n";
     os << "Tensors:\n";
     for (const auto &[name, tensor] : graph.get_tensors()) {
@@ -26,7 +34,7 @@ inline void topological_dump(const Graph &graph, std::ostream &os) {
     }
 }
 
-inline void node_dump(const Graph &graph, std::ostream &os) {
+inline void dump_nodes(const Graph& graph, std::ostream& os) {
     os << "Nodes:\n";
     for (const auto &node : graph.get_nodes()) {
         os << "  Node name: " << node.get_name() << "\n";

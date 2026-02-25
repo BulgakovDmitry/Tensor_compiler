@@ -5,6 +5,7 @@
 #include "onnx.pb.h"
 #include "structure/graph.hpp"
 #include "structure/tensor.hpp"
+#include "executor.hpp"
 #include "utils.hpp"
 #include <cstring>
 #include <fstream>
@@ -60,11 +61,6 @@ int driver(const std::string &model_onnx) {
     const auto &g = model.graph();
 
     auto compute_graph = build_compute_graph(g);
-
-    // debug zone -----------------------------------------
-    topological_dump(compute_graph, std::cout);
-    node_dump(compute_graph, std::cout);
-    // ----------------------------------------------------
 
 #ifdef GRAPH_DUMP
     // ____________GRAPH DUMP___________ //
