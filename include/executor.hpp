@@ -6,12 +6,12 @@
 #include "structure/node.hpp"
 #include "structure/tensor.hpp"
 #include "utils.hpp"
+#include <deque>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include <deque>
 
 namespace tensor_compiler {
 
@@ -43,6 +43,7 @@ class Executor {
     // }
 
     std::vector<const Node *> topological_sort();
+
   private:
     /**
      * @brief Loads input values to tensor_values_
@@ -52,7 +53,6 @@ class Executor {
      */
     void load_inputs(const std::unordered_map<std::string, std::vector<float>>
                          &input_values);
-
 };
 
 // ----------------------------------------------------------------------------
@@ -83,30 +83,30 @@ inline std::vector<const Node *> Executor::topological_sort() {
     }
     // --------------------------------------------------------------
 
-    std::unordered_map<const Node*, std::vector<const Node*>> adj;
-    std::unordered_map<const Node*, std::size_t> in_degree;
+    std::unordered_map<const Node *, std::vector<const Node *>> adj;
+    std::unordered_map<const Node *, std::size_t> in_degree;
     // init adj and in_degree ---------------------------------------
-    for (const auto& node : graph_.get_nodes()) {
-        const Node* p = &node;
+    for (const auto &node : graph_.get_nodes()) {
+        const Node *p = &node;
         adj[p] = {};
         in_degree[p] = 0;
     }
     // --------------------------------------------------------------
 
     // To avoid duplicate edges
-    std::unordered_set<std::pair<const Node*, const Node*>, Edge_hash> seen;
+    std::unordered_set<std::pair<const Node *, const Node *>, Edge_hash> seen;
 
     // build edges from inputs --------------------------------------
-    for (const auto& consumer_node : graph_.get_nodes()) {
-        const Node* consumer = &consumer_node;
+    for (const auto &consumer_node : graph_.get_nodes()) {
+        const Node *consumer = &consumer_node;
 
-        for (const auto& input_tensor : consumer_node.get_inputs()) {
+        for (const auto &input_tensor : consumer_node.get_inputs()) {
             auto it = producer_of.find(input_tensor);
             if (it == producer_of.end()) {
                 continue;
             }
-            const Node* producer = it->second;
-            std::pair<const Node*, const Node*> edge{producer, consumer};
+            const Node *producer = it->second;
+            std::pair<const Node *, const Node *> edge{producer, consumer};
             if (seen.insert(edge).second) {
                 adj[producer].push_back(consumer);
                 in_degree[consumer] += 1;
@@ -115,26 +115,27 @@ inline std::vector<const Node *> Executor::topological_sort() {
     }
     // --------------------------------------------------------------
 
-    std::deque<const Node*> kahn_queue;
+    std::deque<const Node *> kahn_queue;
     // init kahn_queue ----------------------------------------------
-    for (const auto& node : graph_.get_nodes()) {
-        const Node* p = &node;
-        if (in_degree[p] == 0) kahn_queue.push_back(p);
+    for (const auto &node : graph_.get_nodes()) {
+        const Node *p = &node;
+        if (in_degree[p] == 0)
+            kahn_queue.push_back(p);
     }
     // --------------------------------------------------------------
 
-    const std::size_t num_of_nodes = graph_.get_nodes().size();     
+    const std::size_t num_of_nodes = graph_.get_nodes().size();
 
-    std::vector<const Node*> ready_nodes;
+    std::vector<const Node *> ready_nodes;
     ready_nodes.reserve(num_of_nodes);
 
     // add ready nodes to  vector -----------------------------------
     while (!kahn_queue.empty()) {
-        const Node* ready_node = kahn_queue.front();
+        const Node *ready_node = kahn_queue.front();
         kahn_queue.pop_front();
         ready_nodes.push_back(ready_node);
 
-        for (const Node* output_tensors : adj[ready_node]) {
+        for (const Node *output_tensors : adj[ready_node]) {
             if (--in_degree[output_tensors] == 0) {
                 kahn_queue.push_back(output_tensors);
             }
