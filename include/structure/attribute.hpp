@@ -25,7 +25,6 @@ class Attribute {
     const std::string &get_name() const { return name_; }
     const AttrValue &get_value() const { return value; }
     void set_value(const AttrValue &new_value) { value = new_value; }
-    // constructors and getters for different types (to be implemented)
 };
 
 } // namespace tensor_compiler
