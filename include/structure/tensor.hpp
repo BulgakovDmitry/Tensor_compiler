@@ -37,21 +37,21 @@ class Tensor {
     static Tensor create(const std::string &name,
                          const std::vector<int64_t> &shape,
                          const std::vector<data_type> &data,
-                         const Tensor_kind& kind);
+                         const Tensor_kind &kind);
 
-    const std::string&          get_name()  const;
-    const int                   get_type()  const;
-    Tensor_kind                 get_kind()  const;
-    const std::string&          get_data()  const;
-    const std::vector<int64_t>& get_shape() const;
-    const dim_type              get_dim()   const;
+    const std::string &get_name() const;
+    const int get_type() const;
+    Tensor_kind get_kind() const;
+    const std::string &get_data() const;
+    const std::vector<int64_t> &get_shape() const;
+    const dim_type get_dim() const;
 
-    void set_name (const std::string &name);
-    void set_type (const int type);
-    void set_kind (Tensor_kind kind);
-    void set_data (const std::string &data);
+    void set_name(const std::string &name);
+    void set_type(const int type);
+    void set_kind(Tensor_kind kind);
+    void set_data(const std::string &data);
     void set_shape(const std::vector<int64_t> &shape);
-    void set_dim  (const dim_type dim);
+    void set_dim(const dim_type dim);
 
     bool is_constant() const;
 };
@@ -61,9 +61,9 @@ class Tensor {
 // Implementation of tensor methods.
 // ----------------------------------------------------------------------------
 inline Tensor Tensor::create(const std::string &name,
-                         const std::vector<int64_t> &shape,
-                         const std::vector<data_type> &data,
-                         const Tensor_kind& kind) {
+                             const std::vector<int64_t> &shape,
+                             const std::vector<data_type> &data,
+                             const Tensor_kind &kind) {
     std::string raw_data;
     if (!data.empty()) {
         raw_data.assign(reinterpret_cast<const char *>(data.data()),
