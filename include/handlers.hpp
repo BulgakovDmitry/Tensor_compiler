@@ -1,6 +1,7 @@
 #ifndef INCLUDE_HANDLERS_HPP
 #define INCLUDE_HANDLERS_HPP
 
+#include <ostream>
 #include "structure/graph.hpp"
 #include "structure/node.hpp"
 #include "structure/tensor.hpp"
