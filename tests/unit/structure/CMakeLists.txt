@@ -6,6 +6,7 @@ set(SRC_LIST
     src/tensor.cpp
     src/attributes.cpp
     src/node.cpp
+    src/graph.cpp
 )
 
 add_executable(structure ${SRC_LIST} ${ONNX_GENERATED_SRC})
