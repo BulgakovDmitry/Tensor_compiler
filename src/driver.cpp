@@ -1,7 +1,7 @@
 #include "driver.hpp"
+#include "executor.hpp"
 #include "graph_dump/dump_path_gen.hpp"
 #include "graph_dump/graphviz_dumper.hpp"
-#include "executor.hpp"
 #include "handlers.hpp"
 #include "onnx.pb.h"
 #include "structure/graph.hpp"
