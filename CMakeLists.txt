@@ -7,6 +7,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+add_library(tensor_compiler_headers INTERFACE)
+target_include_directories(tensor_compiler_headers
+    INTERFACE ${CMAKE_SOURCE_DIR}/include
+    INTERFACE ${CMAKE_SOURCE_DIR}/include/structure
+    INTERFACE ${CMAKE_BINARY_DIR}/onnx_generated
+    INTERFACE ${PROTOBUF_INCLUDE_DIRS}
+)
+add_library(tensor_compiler::headers ALIAS tensor_compiler_headers)
+
 set(ONNX_PROTO "${CMAKE_CURRENT_SOURCE_DIR}/onnx/onnx.proto")
 if(NOT EXISTS ${ONNX_PROTO})
     message(FATAL_ERROR "ONNX proto file not found: ${ONNX_PROTO}")
@@ -46,5 +55,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     ${PROTOBUF_LIBRARIES}
 )
 
-# enable_testing()
-# add_subdirectory(tests)
+enable_testing()
+add_subdirectory(tests)
