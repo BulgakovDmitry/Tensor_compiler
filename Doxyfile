@@ -1,0 +1,15 @@
+PROJECT_NAME           = "Tensor Compiler"
+PROJECT_BRIEF          = "C++ tensor compiler implementation"
+OUTPUT_DIRECTORY       = docs
+INPUT                  = include src tests
+RECURSIVE              = YES
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = NO
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+HTML_DYNAMIC_SECTIONS  = YES
+HAVE_DOT               = YES
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
+SOURCE_BROWSER         = YES

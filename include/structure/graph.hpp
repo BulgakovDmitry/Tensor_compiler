@@ -12,6 +12,13 @@ namespace tensor_compiler {
 
 using T_map = std::unordered_map<std::string, Tensor>;
 
+/**
+ * @brief Represents a computation graph consisting of nodes and tensors.
+ *
+ * A graph owns a collection of tensors and nodes. It tracks the input and
+ * output tensors of the entire graph. The graph can be built by adding
+ * tensors and nodes, and querying them by name.
+ */
 class Graph {
   private:
     std::string name_;
@@ -22,24 +29,92 @@ class Graph {
 
   public:
     Graph() = default;
+
+    /**
+     * @brief Construct a new Graph with a name.
+     * @param name Graph name.
+     */
     explicit Graph(const std::string &name) : name_{name} {}
 
+    /**
+     * @brief Get the graph name.
+     * @return const reference to name string.
+     */
     const std::string &get_name() const;
+
+    /**
+     * @brief Get the map of tensors (name -> Tensor).
+     * @return const reference to T_map.
+     */
     const T_map &get_tensors() const;
+
+    /**
+     * @brief Get the list of nodes in the graph.
+     * @return const reference to vector of Node.
+     */
     const std::vector<Node> &get_nodes() const;
+
+    /**
+     * @brief Get the list of graph input tensor names.
+     * @return const reference to vector of strings.
+     */
     const std::vector<std::string> &get_inputs() const;
+
+    /**
+     * @brief Get the list of graph output tensor names.
+     * @return const reference to vector of strings.
+     */
     const std::vector<std::string> &get_outputs() const;
 
+    /**
+     * @brief Set the graph name.
+     * @param name New name.
+     */
     void set_name(std::string name);
+
+    /**
+     * @brief Set the list of graph input tensor names.
+     * @param inputs Vector of input names.
+     */
     void set_inputs(const std::vector<std::string> &inputs);
+
+    /**
+     * @brief Set the list of graph output tensor names.
+     * @param outputs Vector of output names.
+     */
     void set_outputs(const std::vector<std::string> &outputs);
 
+    /**
+     * @brief Add a tensor to the graph.
+     *
+     * If a tensor with the same name already exists, it is replaced.
+     * @param tensor The tensor to add.
+     */
     void add_tensor(Tensor tensor);
+
+    /**
+     * @brief Add a node to the graph.
+     * @param node The node to add.
+     */
     void add_node(Node node);
 
+    /**
+     * @brief Append a name to the list of graph inputs.
+     * @param input Input tensor name.
+     */
     void add_input(const std::string &input);
+
+    /**
+     * @brief Append a name to the list of graph outputs.
+     * @param output Output tensor name.
+     */
     void add_output(const std::string &output);
 
+    /**
+     * @brief Get a tensor by name.
+     * @param name Tensor name.
+     * @return Pointer to the tensor, or nullptr if not found.
+     */
     const Tensor *get_tensor(const std::string &name) const;
 };
 
