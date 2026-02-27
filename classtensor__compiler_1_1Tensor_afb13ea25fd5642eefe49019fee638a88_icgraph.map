@@ -1,0 +1,22 @@
+<map id="tensor_compiler::Tensor::set_name" name="tensor_compiler::Tensor::set_name">
+<area shape="rect" id="Node000001" title="Set the tensor name." alt="" coords="1037,120,1215,160"/>
+<area shape="rect" id="Node000002" href="$namespacetensor__compiler.html#ab774919a4823deed7edff1745c724112" title=" " alt="" coords="811,5,989,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1078,115,988,66,948,48,950,43,991,62,1080,111"/>
+<area shape="rect" id="Node000007" href="$namespacetensor__compiler.html#a0c89d73d3d3fd3a0830b84416b641f12" title=" " alt="" coords="564,63,743,103"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="1035,120,989,111,860,96,743,88,743,83,861,90,990,105,1036,114"/>
+<area shape="rect" id="Node000008" href="$namespacetensor__compiler.html#a22c7584d2fda6aee430c64e5d8dd167a" title=" " alt="" coords="811,120,989,160"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="1023,143,989,143,989,137,1023,137"/>
+<area shape="rect" id="Node000009" href="$tensor_8cpp.html#a24a35aad6f17d6731fa0e958d64f882b" title=" " alt="" coords="873,185,927,210"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="1034,166,928,193,927,188,1033,161"/>
+<area shape="rect" id="Node000010" href="$tensor_8cpp.html#a916a1ad11f3e2c858f978241dbe41f98" title=" " alt="" coords="873,234,927,259"/>
+<area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="1087,170,1042,199,990,225,928,244,927,239,988,220,1039,194,1084,166"/>
+<area shape="rect" id="Node000003" href="$namespacetensor__compiler.html#ac752ad2370ff6fffd0c62460196120c5" title=" " alt="" coords="544,13,763,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="797,28,763,28,763,23,797,23"/>
+<area shape="rect" id="Node000004" href="$namespacetensor__compiler.html#a052f14303aa29e6127623a5fdbb6c649" title="Parses an ONNX model graph to compute graph." alt="" coords="329,35,496,75"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="536,42,496,47,496,42,535,37"/>
+<area shape="rect" id="Node000005" href="$namespacetensor__compiler.html#a57968449fedae3871236f55d5868bcf1" title="Loads and parses an ONNX model file." alt="" coords="108,42,281,67"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="316,57,281,57,281,52,316,52"/>
+<area shape="rect" id="Node000006" href="$main_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="5,42,60,67"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="94,57,60,57,60,52,94,52"/>
+<area shape="poly" id="edge7_Node000007_Node000004" title=" " alt="" coords="550,73,496,67,497,62,550,68"/>
+</map>

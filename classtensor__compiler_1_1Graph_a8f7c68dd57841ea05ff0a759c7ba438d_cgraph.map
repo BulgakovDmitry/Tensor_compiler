@@ -1,0 +1,5 @@
+<map id="tensor_compiler::Graph::add_tensor" name="tensor_compiler::Graph::add_tensor">
+<area shape="rect" id="Node000001" title="Add a tensor to the graph." alt="" coords="5,5,180,45"/>
+<area shape="rect" id="Node000002" href="$classtensor__compiler_1_1Tensor.html#a1f37c750879ad4b06d47899213c5621b" title="Get the tensor name." alt="" coords="228,5,405,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,23,215,23,215,28,180,28"/>
+</map>

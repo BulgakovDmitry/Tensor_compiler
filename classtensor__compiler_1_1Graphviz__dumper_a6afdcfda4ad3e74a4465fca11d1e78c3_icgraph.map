@@ -1,0 +1,7 @@
+<map id="tensor_compiler::Graphviz_dumper::dump" name="tensor_compiler::Graphviz_dumper::dump">
+<area shape="rect" id="Node000001" title=" " alt="" coords="329,5,523,45"/>
+<area shape="rect" id="Node000002" href="$namespacetensor__compiler.html#a57968449fedae3871236f55d5868bcf1" title="Loads and parses an ONNX model file." alt="" coords="108,13,281,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="316,28,281,28,281,23,316,23"/>
+<area shape="rect" id="Node000003" href="$main_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="5,13,60,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="94,28,60,28,60,23,94,23"/>
+</map>

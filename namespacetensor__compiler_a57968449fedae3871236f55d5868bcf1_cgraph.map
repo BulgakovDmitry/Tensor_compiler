@@ -1,0 +1,33 @@
+<map id="tensor_compiler::driver" name="tensor_compiler::driver">
+<area shape="rect" id="Node000001" title="Loads and parses an ONNX model file." alt="" coords="5,234,179,259"/>
+<area shape="rect" id="Node000002" href="$namespacetensor__compiler.html#a052f14303aa29e6127623a5fdbb6c649" title="Parses an ONNX model graph to compute graph." alt="" coords="240,163,407,203"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,231,236,204,238,209,140,236"/>
+<area shape="rect" id="Node000014" href="$classtensor__compiler_1_1Graphviz__dumper.html#a6afdcfda4ad3e74a4465fca11d1e78c3" title=" " alt="" coords="227,227,420,267"/>
+<area shape="poly" id="edge15_Node000001_Node000014" title=" " alt="" coords="179,244,213,244,213,249,179,249"/>
+<area shape="rect" id="Node000015" href="$namespacetensor__compiler.html#a009e51049ddf3e14ae2a69a389be1cf7" title=" " alt="" coords="238,291,409,331"/>
+<area shape="poly" id="edge16_Node000001_Node000015" title=" " alt="" coords="140,257,238,284,236,290,138,262"/>
+<area shape="rect" id="Node000003" href="$classtensor__compiler_1_1Graph.html#a6291f0999922425600c6af3b82d74e64" title="Append a name to the list of graph inputs." alt="" coords="490,5,665,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="341,160,394,108,429,80,467,55,480,48,483,53,469,60,432,84,397,112,344,164"/>
+<area shape="rect" id="Node000004" href="$classtensor__compiler_1_1Graph.html#a77ed46340872eca22178c9a31b049ade" title="Add a node to the graph." alt="" coords="490,69,665,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="367,160,467,119,490,111,492,116,469,124,369,165"/>
+<area shape="rect" id="Node000005" href="$classtensor__compiler_1_1Graph.html#aa3564a3db14c106cb1fa518eca2d8d46" title="Append a name to the list of graph outputs." alt="" coords="490,133,665,173"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="407,170,476,162,477,168,407,176"/>
+<area shape="rect" id="Node000006" href="$classtensor__compiler_1_1Graph.html#a8f7c68dd57841ea05ff0a759c7ba438d" title="Add a tensor to the graph." alt="" coords="963,191,1137,231"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="407,183,949,204,949,209,407,189"/>
+<area shape="rect" id="Node000008" href="$namespacetensor__compiler.html#ac752ad2370ff6fffd0c62460196120c5" title=" " alt="" coords="468,255,687,281"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="386,200,421,212,527,248,525,253,419,217,384,205"/>
+<area shape="rect" id="Node000013" href="$namespacetensor__compiler.html#a0c89d73d3d3fd3a0830b84416b641f12" title=" " alt="" coords="735,376,913,416"/>
+<area shape="poly" id="edge13_Node000002_Node000013" title=" " alt="" coords="403,201,422,213,439,233,446,253,454,272,470,290,529,326,595,353,660,371,722,383,721,389,659,377,593,358,527,331,466,294,449,274,441,255,434,235,418,217,400,205"/>
+<area shape="rect" id="Node000007" href="$classtensor__compiler_1_1Tensor.html#a1f37c750879ad4b06d47899213c5621b" title="Get the tensor name." alt="" coords="1187,191,1364,231"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="1137,208,1173,208,1173,213,1137,213"/>
+<area shape="rect" id="Node000009" href="$namespacetensor__compiler.html#ab774919a4823deed7edff1745c724112" title=" " alt="" coords="735,248,913,288"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="687,265,721,265,721,271,687,271"/>
+<area shape="rect" id="Node000012" href="$classtensor__compiler_1_1Node.html#a9d7c0af91b8b4447d11caf4310d6b62f" title="Set the inputs from a vector of strings." alt="" coords="739,312,909,352"/>
+<area shape="poly" id="edge12_Node000008_Node000012" title=" " alt="" coords="628,278,734,306,732,311,627,283"/>
+<area shape="poly" id="edge9_Node000009_Node000006" title=" " alt="" coords="903,245,957,231,958,237,904,251"/>
+<area shape="rect" id="Node000010" href="$classtensor__compiler_1_1Graph.html#af860266864738913485b581eb164f191" title="Get a tensor by name." alt="" coords="963,255,1137,295"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="914,268,949,269,949,274,914,273"/>
+<area shape="rect" id="Node000011" href="$classtensor__compiler_1_1Tensor.html#afb13ea25fd5642eefe49019fee638a88" title="Set the tensor name." alt="" coords="961,347,1139,387"/>
+<area shape="poly" id="edge11_Node000009_Node000011" title=" " alt="" coords="884,286,914,298,1000,338,998,343,912,302,882,291"/>
+<area shape="poly" id="edge14_Node000013_Node000011" title=" " alt="" coords="913,382,947,377,948,383,914,387"/>
+</map>

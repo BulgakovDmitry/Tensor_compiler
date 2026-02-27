@@ -1,0 +1,16 @@
+<map id="tensor_compiler::Node::set_attribute" name="tensor_compiler::Node::set_attribute">
+<area shape="rect" id="Node000001" title="Set an attribute value." alt="" coords="325,127,495,167"/>
+<area shape="rect" id="Node000002" href="$classtensor__compiler_1_1Node.html#a33f4bc4c30e6b277d63978838ae0a73d" title="Parse attributes from an ONNX NodeProto." alt="" coords="108,45,277,85"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="343,125,245,87,247,82,345,120"/>
+<area shape="rect" id="Node000004" href="$node_8cpp.html#a997c251ccc6be8087518ba0a9734ee77" title=" " alt="" coords="5,105,60,131"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="311,142,60,123,60,117,312,137"/>
+<area shape="rect" id="Node000006" href="$node_8cpp.html#ad59d4763f14664c11f1377dce55cbe26" title=" " alt="" coords="165,160,220,185"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="312,161,220,172,220,167,311,156"/>
+<area shape="rect" id="Node000007" href="$node_8cpp.html#a8f33f4fcad4c310cfb576a0497e6cc70" title=" " alt="" coords="165,209,220,235"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="348,175,278,201,221,218,219,213,276,195,346,170"/>
+<area shape="rect" id="Node000003" href="$node_8cpp.html#aa962806ecf60918784e0357765e5ccd1" title=" " alt="" coords="5,5,60,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="110,43,59,28,61,23,111,38"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="120,92,61,112,60,107,118,87"/>
+<area shape="rect" id="Node000005" href="$node_8cpp.html#a20c05d4f2e908b1c0e5dbcf2684ede3e" title=" " alt="" coords="5,55,60,80"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="94,69,60,70,60,64,94,64"/>
+</map>

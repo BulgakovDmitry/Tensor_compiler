@@ -1,0 +1,17 @@
+<map id="tensor_compiler::Node::set_inputs" name="tensor_compiler::Node::set_inputs">
+<area shape="rect" id="Node000001" title="Set the inputs from a vector of strings." alt="" coords="811,80,980,120"/>
+<area shape="rect" id="Node000002" href="$namespacetensor__compiler.html#ac752ad2370ff6fffd0c62460196120c5" title=" " alt="" coords="544,13,763,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="834,77,762,52,719,41,720,36,763,47,835,72"/>
+<area shape="rect" id="Node000006" href="$graph_8cpp.html#a3f192f02cecad504dcb3e46ab7a0c5bb" title=" " alt="" coords="626,62,681,87"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="797,92,681,80,681,75,797,87"/>
+<area shape="rect" id="Node000007" href="$node_8cpp.html#a8a97186fbf196aeb53ce3eee61e526ed" title=" " alt="" coords="626,111,681,137"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="797,112,681,124,681,119,797,107"/>
+<area shape="rect" id="Node000008" href="$node_8cpp.html#a8229a45dfbdf761bd7505820a1bc03be" title=" " alt="" coords="626,161,681,186"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="831,128,763,151,682,171,680,165,762,145,830,122"/>
+<area shape="rect" id="Node000003" href="$namespacetensor__compiler.html#a052f14303aa29e6127623a5fdbb6c649" title="Parses an ONNX model graph to compute graph." alt="" coords="329,5,496,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="530,28,496,28,496,23,530,23"/>
+<area shape="rect" id="Node000004" href="$namespacetensor__compiler.html#a57968449fedae3871236f55d5868bcf1" title="Loads and parses an ONNX model file." alt="" coords="108,13,281,38"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="316,28,281,28,281,23,316,23"/>
+<area shape="rect" id="Node000005" href="$main_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="5,13,60,38"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="94,28,60,28,60,23,94,23"/>
+</map>

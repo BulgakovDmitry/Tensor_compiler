@@ -1,0 +1,12 @@
+<map id="TEST" name="TEST">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,109,60,134"/>
+<area shape="rect" id="Node000002" href="$classtensor__compiler_1_1Node.html#a79a3d3472a44a2e01b50b4b2c6b85bee" title="Get the node&#39;s attributes map." alt="" coords="108,5,277,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="44,107,71,81,107,55,118,49,120,54,109,60,75,85,48,110"/>
+<area shape="rect" id="Node000003" href="$classtensor__compiler_1_1Node.html#a0eb7f7881a33afae90d1825564c18376" title="Check if an attribute exists." alt="" coords="108,69,277,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="60,113,94,106,95,112,61,119"/>
+<area shape="rect" id="Node000004" href="$classtensor__compiler_1_1Node.html#a33f4bc4c30e6b277d63978838ae0a73d" title="Parse attributes from an ONNX NodeProto." alt="" coords="108,133,277,173"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="61,124,95,131,94,136,60,129"/>
+<area shape="rect" id="Node000005" href="$classtensor__compiler_1_1Node.html#af802483f3062cba81dbd7f9a07161cb0" title="Set an attribute value." alt="" coords="325,163,495,203"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="46,132,72,160,90,173,109,183,159,196,212,202,263,202,311,198,312,203,263,207,211,207,158,202,107,188,87,177,69,164,42,136"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="278,162,312,167,312,172,277,167"/>
+</map>

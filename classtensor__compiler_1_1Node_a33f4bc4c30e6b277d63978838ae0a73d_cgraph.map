@@ -1,0 +1,5 @@
+<map id="tensor_compiler::Node::parse_attributes" name="tensor_compiler::Node::parse_attributes">
+<area shape="rect" id="Node000001" title="Parse attributes from an ONNX NodeProto." alt="" coords="5,5,175,45"/>
+<area shape="rect" id="Node000002" href="$classtensor__compiler_1_1Node.html#af802483f3062cba81dbd7f9a07161cb0" title="Set an attribute value." alt="" coords="223,5,392,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,23,209,23,209,28,175,28"/>
+</map>

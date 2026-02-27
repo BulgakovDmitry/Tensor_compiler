@@ -1,0 +1,7 @@
+<map id="tensor_compiler::Graph::set_outputs" name="tensor_compiler::Graph::set_outputs">
+<area shape="rect" id="Node000001" title="Set the list of graph output tensor names." alt="" coords="108,23,283,63"/>
+<area shape="rect" id="Node000002" href="$graph_8cpp.html#a3f192f02cecad504dcb3e46ab7a0c5bb" title=" " alt="" coords="5,5,60,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,30,60,25,60,19,95,25"/>
+<area shape="rect" id="Node000003" href="$graph_8cpp.html#af64cc7a00c5cddec7d5cd36f157e0b96" title=" " alt="" coords="5,55,60,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="95,61,60,66,60,61,94,56"/>
+</map>
