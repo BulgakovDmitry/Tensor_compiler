@@ -5,9 +5,12 @@ include(GoogleTest)
 set(SRC_LIST
     src/tensor.cpp
     src/attributes.cpp
+    src/node.cpp
 )
 
-add_executable(structure ${SRC_LIST})
+add_executable(structure ${SRC_LIST} ${ONNX_GENERATED_SRC})
+
+target_include_directories(structure PRIVATE ${CMAKE_BINARY_DIR}/onnx_generated)
 
 target_link_libraries(structure
     PRIVATE 
