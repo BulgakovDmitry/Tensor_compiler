@@ -16,6 +16,9 @@
 - [Project structure](#project-structure)
 - [Project authors](#project-authors)
 
+## Documentation 📗
+[Documentation](https://bulgakovdmitry.github.io/Tensor_compiler/)
+
 ## <a id="running-the-program"></a>Running the program 🛡️
 Repository `cloning`, `build` and `compilation` is performed using the following commands:
 
