@@ -9,7 +9,7 @@ set(SRC_LIST
     src/graph.cpp
 )
 
-add_executable(structure ${SRC_LIST} ${ONNX_GENERATED_SRC})
+add_executable(structure ${SRC_LIST})
 
 target_include_directories(structure PRIVATE ${CMAKE_BINARY_DIR}/onnx_generated)
 
@@ -19,7 +19,7 @@ target_link_libraries(structure
         GTest::gtest_main
         Threads::Threads
         tensor_compiler::headers
-        ${PROTOBUF_LIBRARIES}
+        onnx_proto
 )
 
 gtest_discover_tests(structure
