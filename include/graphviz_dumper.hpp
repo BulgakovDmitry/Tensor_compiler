@@ -152,21 +152,28 @@ class Graphviz_dumper {
             std::string bgcolor;
 
             switch (tensor.get_kind()) {
-            case Tensor_kind::input:
+            case Tensor_kind::input: {
                 kind_str = "input";
                 bgcolor = "lightblue";
                 break;
-            case Tensor_kind::output:
+            }
+            case Tensor_kind::output: {
                 kind_str = "output";
                 bgcolor = "lightgreen";
                 break;
-            case Tensor_kind::constant:
+            }
+            case Tensor_kind::constant: {
                 kind_str = "constant";
                 bgcolor = "lightgrey";
                 break;
-            default:
+            }
+            case Tensor_kind::intermediate: {
                 kind_str = "intermediate";
                 bgcolor = "pink";
+                break;
+            }
+            default:
+                throw std::runtime_error("unknown tentor kind\n");
                 break;
             }
 

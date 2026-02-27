@@ -1,9 +1,12 @@
 #include "driver.hpp"
 #include "dump_path_gen.hpp"
+#include "executor.hpp"
 #include "graphviz_dumper.hpp"
 #include "handlers.hpp"
 #include "onnx.pb.h"
 #include "structure/graph.hpp"
+#include "structure/tensor.hpp"
+#include "utils.hpp"
 #include <cstring>
 #include <fstream>
 #include <google/protobuf/io/zero_copy_stream_impl.h>

@@ -41,8 +41,6 @@ class Graph {
     void add_output(const std::string &output);
 
     const Tensor *get_tensor(const std::string &name) const;
-
-    void dump(std::ostream &os) const;
 };
 
 // ----------------------------------------------------------------------------

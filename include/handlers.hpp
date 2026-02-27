@@ -4,6 +4,7 @@
 #include "structure/graph.hpp"
 #include "structure/node.hpp"
 #include "structure/tensor.hpp"
+#include <ostream>
 
 namespace tensor_compiler {
 
