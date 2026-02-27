@@ -42,9 +42,9 @@ class Attribute {
     const std::string &get_name() const { return name_; }
 
     /**
-    * @brief Get the attribute value.
-    * @return const reference to AttrValue variant.
-    */
+     * @brief Get the attribute value.
+     * @return const reference to AttrValue variant.
+     */
     const AttrValue &get_value() const { return value; }
 
     /**

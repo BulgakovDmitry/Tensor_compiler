@@ -8,11 +8,11 @@
 namespace tensor_compiler {
 
 enum class Tensor_kind {
-    unknown = 0,      ///< Role not yet assigned.
-    input,            ///< Graph input tensor.
-    output,           ///< Graph output tensor.
-    intermediate,     ///< Intermediate tensor (result of some node).
-    constant,         ///< Constant tensor (initializer).
+    unknown = 0,  ///< Role not yet assigned.
+    input,        ///< Graph input tensor.
+    output,       ///< Graph output tensor.
+    intermediate, ///< Intermediate tensor (result of some node).
+    constant,     ///< Constant tensor (initializer).
 };
 
 using data_type = onnx::TensorProto_DataType;
