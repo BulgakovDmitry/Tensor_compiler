@@ -4,7 +4,6 @@
 #include "handlers.hpp"
 #include "node.hpp"
 #include "tensor.hpp"
-#include "handlers.hpp"
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -56,7 +55,7 @@ class Graph final {
     /// @return Pointer to the tensor, or nullptr if not found.
     const Tensor *get_tensor(const std::string &name) const;
 
-private:
+  private:
     /// @brief Set the graph name.
     /// @param name New name.
     void set_name(std::string name);

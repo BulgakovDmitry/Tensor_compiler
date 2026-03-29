@@ -4,11 +4,8 @@
 namespace tensor_compiler {
 
 class Codegen {
-private:
-
-
-public:
-
+  private:
+  public:
     Codegen();
 };
 
