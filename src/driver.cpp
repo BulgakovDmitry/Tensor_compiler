@@ -3,7 +3,7 @@
 #include "graph_dump/graphviz_dumper.hpp"
 #include "onnx.pb.h"
 #include "structure/graph.hpp"
-#include "utils.hpp"
+#include "codegen/codegen.hpp"
 #include <cstring>
 #include <fstream>
 #include <google/protobuf/io/zero_copy_stream_impl.h>

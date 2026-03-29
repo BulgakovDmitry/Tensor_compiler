@@ -4,7 +4,7 @@
 #include "handlers.hpp"
 #include "node.hpp"
 #include "tensor.hpp"
-#include <ostream>
+#include "handlers.hpp"
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -27,10 +27,8 @@ class Graph final {
     std::vector<std::string> outputs_;
 
   public:
-    Graph() = default;
-
-    /// @brief Construct a new Graph with a name.
-    /// @param name Graph name.
+    /// @brief Construct the compute graph from an ONNX model graph
+    /// @param graph onnx::GraphProto for building Graph.
     explicit Graph(const onnx::GraphProto &graph);
 
     /// @brief Get the graph name.
@@ -53,6 +51,12 @@ class Graph final {
     /// @return const reference to vector of strings.
     const std::vector<std::string> &get_outputs() const;
 
+    /// @brief Get a tensor by name.
+    /// @param name Tensor name.
+    /// @return Pointer to the tensor, or nullptr if not found.
+    const Tensor *get_tensor(const std::string &name) const;
+
+private:
     /// @brief Set the graph name.
     /// @param name New name.
     void set_name(std::string name);
@@ -82,16 +86,6 @@ class Graph final {
     /// @brief Append a name to the list of graph outputs.
     /// @param output Output tensor name.
     void add_output(const std::string &output);
-
-    /// @brief Get a tensor by name.
-    /// @param name Tensor name.
-    /// @return Pointer to the tensor, or nullptr if not found.
-    const Tensor *get_tensor(const std::string &name) const;
-
-  private:
-    /// @brief Parses an ONNX model graph to compute graph
-    /// @param graph onnx::GraphProto for building Graph.
-    void build(const onnx::GraphProto &graph);
 
     /// @brief Convert an ONNX TensorProto to a Tensor object.
     /// @param t The ONNX TensorProto to convert.
@@ -128,8 +122,30 @@ class Graph final {
 // Implementations
 // ----------------------------------------------------------------------------
 inline Graph::Graph(const onnx::GraphProto &graph) : name_{graph.name()} {
-    build(graph);
+    for (const auto &initializer : graph.initializer()) {
+        auto tensor = handle_tensor(initializer);
+        add_tensor(std::move(tensor));
+    }
+
+    for (const auto &input : graph.input()) {
+        auto tensor = handle_tensor(input, Tensor_kind::input);
+        add_tensor(std::move(tensor));
+        add_input(input.name());
+    }
+
+    std::size_t node_idx = 0;
+    for (const auto &node : graph.node()) {
+        auto new_node = handle_node(node_idx, node);
+        add_node(std::move(new_node));
+    }
+
+    for (const auto &output : graph.output()) {
+        Tensor tensor = handle_tensor(output, Tensor_kind::output);
+        add_tensor(std::move(tensor));
+        add_output(output.name());
+    }
 }
+
 inline const std::string &Graph::get_name() const { return name_; }
 inline const T_map &Graph::get_tensors() const { return tensors_; }
 inline const std::vector<Node> &Graph::get_nodes() const { return nodes_; }
@@ -167,31 +183,6 @@ inline const Tensor *Graph::get_tensor(const std::string &name) const {
     if (it != tensors_.end())
         return &(it->second);
     return nullptr;
-}
-
-inline void Graph::build(const onnx::GraphProto &graph) {
-    for (const auto &initializer : graph.initializer()) {
-        auto tensor = handle_tensor(initializer);
-        add_tensor(std::move(tensor));
-    }
-
-    for (const auto &input : graph.input()) {
-        auto tensor = handle_tensor(input, Tensor_kind::input);
-        add_tensor(std::move(tensor));
-        add_input(input.name());
-    }
-
-    std::size_t node_idx = 0;
-    for (const auto &node : graph.node()) {
-        auto new_node = handle_node(node_idx, node);
-        add_node(std::move(new_node));
-    }
-
-    for (const auto &output : graph.output()) {
-        Tensor tensor = handle_tensor(output, Tensor_kind::output);
-        add_tensor(std::move(tensor));
-        add_output(output.name());
-    }
 }
 
 inline Tensor Graph::handle_tensor(const onnx::TensorProto &t) {
