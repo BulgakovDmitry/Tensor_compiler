@@ -18,7 +18,6 @@ enum class Tensor_kind {
 using data_type = onnx::TensorProto_DataType;
 using dim_type = google::protobuf::RepeatedField<int64_t>;
 
-
 /// @brief Represents a tensor in the computation graph.
 ///
 /// Stores tensor metadata: name, data type, shape, raw data, and its kind.
@@ -63,11 +62,9 @@ class Tensor {
     /// @return const reference to name string.
     const std::string &get_name() const;
 
-
     /// @brief Get the data type.
     /// @return int (onnx::TensorProto_DataType value).
     const int get_type() const;
-
 
     /// @brief Get the tensor kind.
     /// @return Tensor_kind.

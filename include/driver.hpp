@@ -1,5 +1,6 @@
 /// @file driver.hpp
-/// @brief Provides a high-level driver function to load and parse an ONNX model.
+/// @brief Provides a high-level driver function to load and parse an ONNX
+/// model.
 
 #ifndef INCLUDE_DRIVER_HPP
 #define INCLUDE_DRIVER_HPP
