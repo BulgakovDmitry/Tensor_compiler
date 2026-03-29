@@ -20,7 +20,7 @@ using Attributes = std::unordered_map<std::string, Attribute>;
 /// A node corresponds to an operator in the neural network. It stores the *
 /// operator type (opcode), its inputs/outputs as tensor names, and a set of
 /// attributes that parameterize the operator.
-class Node {
+class Node final {
   public:
     using node_id = std::size_t;
     using name_t = google::protobuf::RepeatedPtrField<std::string>;

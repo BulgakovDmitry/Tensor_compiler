@@ -23,7 +23,7 @@ using dim_type = google::protobuf::RepeatedField<int64_t>;
 /// Stores tensor metadata: name, data type, shape, raw data, and its kind.
 /// The raw data is stored as a string (binary blob). For float tensors,
 /// a convenience factory method Tensor::create() is provided.
-class Tensor {
+class Tensor final {
   private:
     std::string name_;
     int type_ = data_type::TensorProto_DataType_UNDEFINED;

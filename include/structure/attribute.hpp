@@ -12,7 +12,7 @@ namespace tensor_compiler {
 /// An attribute holds a name and a value which can be of several types:
 /// float, int64_t, string, vector<float>, vector<int64_t>. This class is a
 /// simple wrapper around a variant.
-class Attribute {
+class Attribute final {
   public:
     using AttrValue = std::variant<float, int64_t, std::string,
                                    std::vector<float>, std::vector<int64_t>>;

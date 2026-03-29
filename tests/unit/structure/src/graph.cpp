@@ -20,20 +20,11 @@ TEST(Graph, DefaultConstructorInitializesEmptyGraph) {
     EXPECT_TRUE(g.get_outputs().empty());
 }
 
-TEST(Graph, NameConstructorStoresName) {
-    Graph g("MyGraph");
-
-    EXPECT_EQ(g.get_name(), "MyGraph");
-    EXPECT_TRUE(g.get_tensors().empty());
-    EXPECT_TRUE(g.get_nodes().empty());
-    EXPECT_TRUE(g.get_inputs().empty());
-    EXPECT_TRUE(g.get_outputs().empty());
-}
-
 // -------------------------------- Getters -------------------------------------
 
 TEST(Graph, GettersReturnConstReferencesToInternals) {
-    Graph g("G");
+    Graph g;
+    g.set_name("G");
 
     g.set_inputs({"in1", "in2"});
     g.set_outputs({"out1"});
@@ -68,9 +59,7 @@ TEST(Graph, GettersReturnConstReferencesToInternals) {
 // -------------------------------- set_name ------------------------------------
 
 TEST(Graph, SetNameUpdatesName) {
-    Graph g("A");
-    EXPECT_EQ(g.get_name(), "A");
-
+    Graph g;
     g.set_name("B");
     EXPECT_EQ(g.get_name(), "B");
 }

@@ -3,6 +3,7 @@
 
 #include "node.hpp"
 #include "tensor.hpp"
+#include "handlers.hpp"
 #include <ostream>
 #include <string>
 #include <unordered_map>
@@ -17,7 +18,7 @@ using T_map = std::unordered_map<std::string, Tensor>;
 /// A graph owns a collection of tensors and nodes. It tracks the input and
 /// output tensors of the entire graph. The graph can be built by adding
 /// tensors and nodes, and querying them by name.
-class Graph {
+class Graph final {
   private:
     std::string name_;
     T_map tensors_;
@@ -30,7 +31,7 @@ class Graph {
 
     /// @brief Construct a new Graph with a name.
     /// @param name Graph name.
-    explicit Graph(const std::string &name) : name_{name} {}
+    explicit Graph(const onnx::GraphProto &graph);
 
     /// @brief Get the graph name.
     /// @return const reference to name string.
@@ -86,12 +87,50 @@ class Graph {
     /// @param name Tensor name.
     /// @return Pointer to the tensor, or nullptr if not found.
     const Tensor *get_tensor(const std::string &name) const;
+
+private:
+    /// @brief Parses an ONNX model graph to compute graph
+    /// @param graph onnx::GraphProto for building Graph.
+    void build(const onnx::GraphProto &graph);
+
+    /// @brief Convert an ONNX TensorProto to a Tensor object.
+    /// @param t The ONNX TensorProto to convert.
+    /// @return Tensor with name, dims, type, data and kind=constant.
+    Tensor handle_tensor(const onnx::TensorProto &t);
+
+    /// @brief Convert an ONNX ValueInfoProto to a Tensor object.
+    /// @param t The ONNX ValueInfoProto to convert.
+    /// @param type The kind to assign to the tensor (input/output).
+    /// @return Tensor with name, dims, type and specified kind.
+    Tensor handle_tensor(const onnx::ValueInfoProto &t,
+                                const Tensor_kind &type);
+
+    /// @brief Ensure a tensor exists in the graph for a node's I/O.
+    ///
+    /// If the tensor name is non-empty and not already present,
+    /// creates a new intermediate tensor entry.
+    /// @param new_node Reference to the node being built (unused, kept for API symmetry).
+    /// @param node The ONNX NodeProto containing the tensor reference.
+    /// @param name The tensor name to check/register.
+    void handle_node_ir_tensor(Node &new_node,
+                                    const onnx::NodeProto &node,
+                                    const std::string &name);
+
+    /// @brief Convert an ONNX NodeProto to a Node object.
+    /// @param node_idx Reference to a counter for assigning node indices.
+    /// @param node The ONNX NodeProto to convert.
+    /// @return Node with name, op_type, index, I/O lists and parsed attributes.
+    Node handle_node(std::size_t &node_idx,
+                            const onnx::NodeProto &node);
 };
 
 // ----------------------------------------------------------------------------
 // @section Implementations
 // Implementations
 // ----------------------------------------------------------------------------
+inline Graph::Graph(const onnx::GraphProto &graph) : name_{graph.name()} {
+    build(graph);
+}
 inline const std::string &Graph::get_name() const { return name_; }
 inline const T_map &Graph::get_tensors() const { return tensors_; }
 inline const std::vector<Node> &Graph::get_nodes() const { return nodes_; }
@@ -129,6 +168,80 @@ inline const Tensor *Graph::get_tensor(const std::string &name) const {
     if (it != tensors_.end())
         return &(it->second);
     return nullptr;
+}
+
+inline void Graph::build(const onnx::GraphProto &graph) {
+    for (const auto &initializer : graph.initializer()) {
+        auto tensor = handle_tensor(initializer);
+        add_tensor(std::move(tensor));
+    }
+
+    for (const auto &input : graph.input()) {
+        auto tensor = handle_tensor(input, Tensor_kind::input);
+        add_tensor(std::move(tensor));
+        add_input(input.name());
+    }
+
+    std::size_t node_idx = 0;
+    for (const auto &node : graph.node()) {
+        auto new_node = handle_node(node_idx, node);
+        add_node(std::move(new_node));
+    }
+
+    for (const auto &output : graph.output()) {
+        Tensor tensor = handle_tensor(output, Tensor_kind::output);
+        add_tensor(std::move(tensor));
+        add_output(output.name());
+    }
+}
+
+inline Tensor Graph::handle_tensor(const onnx::TensorProto &t) {
+    Tensor tensor{};
+    tensor.set_name(t.name());
+    tensor.set_dim(t.dims());
+    tensor.set_type(t.data_type());
+    tensor.set_data(extract_tensor_bytes(t));
+    tensor.set_kind(Tensor_kind::constant);
+    return tensor;
+}
+
+inline Tensor Graph::handle_tensor(const onnx::ValueInfoProto &t,
+                            const Tensor_kind &type) {
+    Tensor tensor{};
+    tensor.set_name(t.name());
+    tensor.set_dim(extract_dims(t));
+    tensor.set_type(extract_elem_type(t));
+    tensor.set_kind(type);
+    return tensor;
+}
+
+inline void Graph::handle_node_ir_tensor(Node &new_node,
+                                const onnx::NodeProto &node,
+                                const std::string &name) {
+    if (name.empty())
+        return;
+    if (!get_tensor(name)) {
+        Tensor t{};
+        t.set_name(name);
+        t.set_kind(Tensor_kind::intermediate);
+        add_tensor(std::move(t));
+    }
+}
+
+inline Node Graph::handle_node(std::size_t &node_idx,
+                        const onnx::NodeProto &node) {
+    Node new_node{node.name(), node.op_type(), node_idx++};
+    new_node.set_inputs(node.input());
+    new_node.set_outputs(node.output());
+    new_node.parse_attributes(node);
+
+    for (const auto &name : new_node.get_inputs())
+        handle_node_ir_tensor(new_node, node, name);
+
+    for (const auto &name : new_node.get_outputs())
+        handle_node_ir_tensor(new_node, node, name);
+
+    return new_node;
 }
 
 } // namespace tensor_compiler
