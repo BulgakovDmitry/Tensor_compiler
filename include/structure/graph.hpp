@@ -1,9 +1,9 @@
 #ifndef INCLUDE_GRAPH_HPP
 #define INCLUDE_GRAPH_HPP
 
+#include "handlers.hpp"
 #include "node.hpp"
 #include "tensor.hpp"
-#include "handlers.hpp"
 #include <ostream>
 #include <string>
 #include <unordered_map>
@@ -88,7 +88,7 @@ class Graph final {
     /// @return Pointer to the tensor, or nullptr if not found.
     const Tensor *get_tensor(const std::string &name) const;
 
-private:
+  private:
     /// @brief Parses an ONNX model graph to compute graph
     /// @param graph onnx::GraphProto for building Graph.
     void build(const onnx::GraphProto &graph);
@@ -103,25 +103,24 @@ private:
     /// @param type The kind to assign to the tensor (input/output).
     /// @return Tensor with name, dims, type and specified kind.
     Tensor handle_tensor(const onnx::ValueInfoProto &t,
-                                const Tensor_kind &type);
+                         const Tensor_kind &type);
 
     /// @brief Ensure a tensor exists in the graph for a node's I/O.
     ///
     /// If the tensor name is non-empty and not already present,
     /// creates a new intermediate tensor entry.
-    /// @param new_node Reference to the node being built (unused, kept for API symmetry).
+    /// @param new_node Reference to the node being built (unused, kept for API
+    /// symmetry).
     /// @param node The ONNX NodeProto containing the tensor reference.
     /// @param name The tensor name to check/register.
-    void handle_node_ir_tensor(Node &new_node,
-                                    const onnx::NodeProto &node,
-                                    const std::string &name);
+    void handle_node_ir_tensor(Node &new_node, const onnx::NodeProto &node,
+                               const std::string &name);
 
     /// @brief Convert an ONNX NodeProto to a Node object.
     /// @param node_idx Reference to a counter for assigning node indices.
     /// @param node The ONNX NodeProto to convert.
     /// @return Node with name, op_type, index, I/O lists and parsed attributes.
-    Node handle_node(std::size_t &node_idx,
-                            const onnx::NodeProto &node);
+    Node handle_node(std::size_t &node_idx, const onnx::NodeProto &node);
 };
 
 // ----------------------------------------------------------------------------
@@ -206,7 +205,7 @@ inline Tensor Graph::handle_tensor(const onnx::TensorProto &t) {
 }
 
 inline Tensor Graph::handle_tensor(const onnx::ValueInfoProto &t,
-                            const Tensor_kind &type) {
+                                   const Tensor_kind &type) {
     Tensor tensor{};
     tensor.set_name(t.name());
     tensor.set_dim(extract_dims(t));
@@ -216,8 +215,8 @@ inline Tensor Graph::handle_tensor(const onnx::ValueInfoProto &t,
 }
 
 inline void Graph::handle_node_ir_tensor(Node &new_node,
-                                const onnx::NodeProto &node,
-                                const std::string &name) {
+                                         const onnx::NodeProto &node,
+                                         const std::string &name) {
     if (name.empty())
         return;
     if (!get_tensor(name)) {
@@ -229,7 +228,7 @@ inline void Graph::handle_node_ir_tensor(Node &new_node,
 }
 
 inline Node Graph::handle_node(std::size_t &node_idx,
-                        const onnx::NodeProto &node) {
+                               const onnx::NodeProto &node) {
     Node new_node{node.name(), node.op_type(), node_idx++};
     new_node.set_inputs(node.input());
     new_node.set_outputs(node.output());

@@ -16,7 +16,8 @@ int driver(const std::string &model_onnx) {
     onnx::ModelProto model;
     std::fstream input(model_onnx, std::ios::in | std::ios::binary);
     if (!input.good())
-        throw std::runtime_error("Failed to open ONNX model file: " + model_onnx + "\n");
+        throw std::runtime_error(
+            "Failed to open ONNX model file: " + model_onnx + "\n");
 
     if (!model.ParseFromIstream(&input))
         throw std::runtime_error("Failed to parse ONNX model.\n");

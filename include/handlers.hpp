@@ -12,7 +12,8 @@ static int extract_elem_type(const onnx::ValueInfoProto &v) {
     return v.type().tensor_type().elem_type();
 }
 
-static google::protobuf::RepeatedField<int64_t> extract_dims(const onnx::ValueInfoProto &v) {
+static google::protobuf::RepeatedField<int64_t>
+extract_dims(const onnx::ValueInfoProto &v) {
     google::protobuf::RepeatedField<int64_t> dims;
     if (!v.has_type() || !v.type().has_tensor_type() ||
         !v.type().tensor_type().has_shape())
