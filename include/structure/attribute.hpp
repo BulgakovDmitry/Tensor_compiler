@@ -15,7 +15,7 @@ namespace tensor_compiler {
 class Attribute final {
   public:
     using AttrValue = std::variant<float, int64_t, std::string,
-                                   std::vector<float>, std::vector<int64_t>>;
+                                   std::vector<float>, std::vector<int64_t>, bool, std::vector<std::string>>;
 
   private:
     std::string name_;

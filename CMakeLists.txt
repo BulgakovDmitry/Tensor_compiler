@@ -12,6 +12,18 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # -------------------------------------------------------------------
 find_package(Protobuf REQUIRED)
 find_package(Threads REQUIRED)
+find_package(MLIR REQUIRED CONFIG)
+
+list(APPEND CMAKE_MODULE_PATH "${MLIR_CMAKE_DIR}")
+list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
+
+include(AddLLVM)
+include(AddMLIR)
+include(HandleLLVMOptions)
+
+include_directories(${LLVM_INCLUDE_DIRS})
+include_directories(${MLIR_INCLUDE_DIRS})
+add_definitions(${LLVM_DEFINITIONS})
 
 # -------------------------------------------------------------------
 # Generate ONNX protobuf
@@ -69,6 +81,9 @@ target_link_libraries(${PROJECT_NAME}
         tensor_compiler::headers
         onnx_proto
         Threads::Threads
+        MLIRIR
+        MLIRSupport
+        MLIRFuncDialect
 )
 
 # -------------------------------------------------------------------
