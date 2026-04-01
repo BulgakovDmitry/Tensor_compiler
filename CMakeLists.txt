@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(tensor_compiler LANGUAGES CXX)
+project(tensor_compiler LANGUAGES C  CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -74,6 +74,7 @@ add_library(tensor_compiler::headers ALIAS tensor_compiler_headers)
 add_executable(${PROJECT_NAME}
     src/main.cpp
     src/driver.cpp
+    src/codegen/codegen.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
