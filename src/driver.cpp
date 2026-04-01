@@ -37,7 +37,7 @@ int driver(const std::string &model_onnx) {
 
     Graphviz_dumper::dump(compute_graph, gv);
 #endif
-    
+
     tensor_compiler::Codegen codegen;
     auto module = codegen.generate(compute_graph);
     module->print(llvm::outs());

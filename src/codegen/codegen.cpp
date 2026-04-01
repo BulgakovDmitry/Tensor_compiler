@@ -8,17 +8,15 @@ Codegen::Codegen() {
     context_->loadAllAvailableDialects();
 }
 
-mlir::MLIRContext &Codegen::get_context() noexcept {
-    return *context_;
-}
+mlir::MLIRContext &Codegen::get_context() noexcept { return *context_; }
 
 const mlir::MLIRContext &Codegen::get_context() const noexcept {
     return *context_;
 }
 
-mlir::OwningOpRef<mlir::ModuleOp> Codegen::generate(const Graph& graph) {
+mlir::OwningOpRef<mlir::ModuleOp> Codegen::generate(const Graph &graph) {
     mlir::OpBuilder builder(context_.get());
-    
+
     mlir::Location loc = builder.getUnknownLoc();
 
     mlir::ModuleOp module = mlir::ModuleOp::create(loc);
@@ -26,11 +24,10 @@ mlir::OwningOpRef<mlir::ModuleOp> Codegen::generate(const Graph& graph) {
     std::string funcName = graph.get_name().empty() ? "main" : graph.get_name();
 
     mlir::FunctionType funcType = builder.getFunctionType(
-        llvm::ArrayRef<mlir::Type>{},
-        llvm::ArrayRef<mlir::Type>{}
-    );
+        llvm::ArrayRef<mlir::Type>{}, llvm::ArrayRef<mlir::Type>{});
 
-    mlir::func::FuncOp func = mlir::func::FuncOp::create(loc, funcName, funcType);
+    mlir::func::FuncOp func =
+        mlir::func::FuncOp::create(loc, funcName, funcType);
 
     mlir::Block *entryBlock = func.addEntryBlock();
     builder.setInsertionPointToStart(entryBlock);
