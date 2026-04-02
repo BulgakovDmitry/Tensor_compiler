@@ -29,6 +29,10 @@ class Codegen {
 
     mlir::MLIRContext &get_context() noexcept;
     const mlir::MLIRContext &get_context() const noexcept;
+    
+  private:
+      mlir::Type             convert_element_type(int onnx_type) const;
+      mlir::RankedTensorType convert_tensor_type (const Tensor &tensor) const;
 };
 
 } // namespace tensor_compiler

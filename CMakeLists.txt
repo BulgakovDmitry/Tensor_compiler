@@ -85,6 +85,8 @@ target_link_libraries(${PROJECT_NAME}
         MLIRIR
         MLIRSupport
         MLIRFuncDialect
+        MLIRArithDialect
+        MLIRTensorDialect
 )
 
 # -------------------------------------------------------------------
