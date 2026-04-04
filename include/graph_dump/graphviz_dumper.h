@@ -1,10 +1,10 @@
 #ifndef INCLUDE_GRAPHVIZ_DUMPER_HPP
 #define INCLUDE_GRAPHVIZ_DUMPER_HPP
 
-#include "structure/attribute.hpp"
-#include "structure/graph.hpp"
-#include "structure/node.hpp"
-#include "structure/tensor.hpp"
+#include "structure/attribute.h"
+#include "structure/graph.h"
+#include "structure/node.h"
+#include "structure/tensor.h"
 #include <iostream>
 #include <ostream>
 #include <string>

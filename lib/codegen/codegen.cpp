@@ -1,4 +1,4 @@
-#include "../../include/codegen/codegen.hpp"
+#include "codegen/codegen.h"
 
 namespace tensor_compiler {
 

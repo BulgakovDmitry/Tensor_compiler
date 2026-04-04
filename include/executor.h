@@ -1,11 +1,11 @@
 #ifndef INCLUDE_EXECUTOR_HPP
 #define INCLUDE_EXECUTOR_HPP
 
-#include "structure/attribute.hpp"
-#include "structure/graph.hpp"
-#include "structure/node.hpp"
-#include "structure/tensor.hpp"
-#include "utils.hpp"
+#include "structure/attribute.h"
+#include "structure/graph.h"
+#include "structure/node.h"
+#include "structure/tensor.h"
+#include "utils.h"
 #include <deque>
 #include <stdexcept>
 #include <string>
