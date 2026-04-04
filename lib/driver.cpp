@@ -44,10 +44,7 @@ int driver(const std::string &model_onnx) {
     module->print(llvm::outs());
     llvm::outs() << "\n";
 
-    // std::cout << '\n\n';
-    // std::cout << "outputs: " << compute_graph.get_outputs().size() << "\n";
-    // for (const auto &name : compute_graph.get_outputs()) std::cout << name <<
-    // "\n";
+    
 
     return 0;
 }

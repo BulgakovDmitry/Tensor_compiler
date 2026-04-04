@@ -29,19 +29,6 @@ class Executor {
         }
     }
 
-    // T_map execute(const std::unordered_map<std::string, std::vector<float>>
-    // //TODO
-    //                   &input_values) {
-    //     load_inputs(input_values);
-
-    //     topological_sort();
-
-    //     // ... + execution of all nodes and get output_values of compute
-    //     graph
-
-    //     return output_values;
-    // }
-
     std::vector<const Node *> topological_sort();
 
   private:
