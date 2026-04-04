@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(tensor_compiler LANGUAGES CXX)
+project(tensor_compiler LANGUAGES C  CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -12,6 +12,18 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # -------------------------------------------------------------------
 find_package(Protobuf REQUIRED)
 find_package(Threads REQUIRED)
+find_package(MLIR REQUIRED CONFIG)
+
+list(APPEND CMAKE_MODULE_PATH "${MLIR_CMAKE_DIR}")
+list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
+
+include(AddLLVM)
+include(AddMLIR)
+include(HandleLLVMOptions)
+
+include_directories(${LLVM_INCLUDE_DIRS})
+include_directories(${MLIR_INCLUDE_DIRS})
+add_definitions(${LLVM_DEFINITIONS})
 
 # -------------------------------------------------------------------
 # Generate ONNX protobuf
@@ -62,6 +74,7 @@ add_library(tensor_compiler::headers ALIAS tensor_compiler_headers)
 add_executable(${PROJECT_NAME}
     src/main.cpp
     src/driver.cpp
+    src/codegen/codegen.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -69,6 +82,11 @@ target_link_libraries(${PROJECT_NAME}
         tensor_compiler::headers
         onnx_proto
         Threads::Threads
+        MLIRIR
+        MLIRSupport
+        MLIRFuncDialect
+        MLIRArithDialect
+        MLIRTensorDialect
 )
 
 # -------------------------------------------------------------------
