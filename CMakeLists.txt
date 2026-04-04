@@ -39,7 +39,7 @@ set(PROTO_GEN_DIR "${CMAKE_CURRENT_BINARY_DIR}/onnx_generated")
 file(MAKE_DIRECTORY "${PROTO_GEN_DIR}")
 
 protobuf_generate_cpp(
-    ONNX_GENERATED_SRC 
+    ONNX_GENERATED_SRC
     ONNX_GENERATED_HDR
     ${ONNX_PROTO}
     PROTOC_OUT_DIR ${PROTO_GEN_DIR}
@@ -47,13 +47,13 @@ protobuf_generate_cpp(
 )
 
 add_library(onnx_proto STATIC ${ONNX_GENERATED_SRC})
-target_include_directories(onnx_proto 
-    PUBLIC 
+target_include_directories(onnx_proto
+    PUBLIC
         "${PROTO_GEN_DIR}"
         ${PROTOBUF_INCLUDE_DIRS}
 )
-target_link_libraries(onnx_proto 
-    PUBLIC 
+target_link_libraries(onnx_proto
+    PUBLIC
         ${PROTOBUF_LIBRARIES}
 )
 
@@ -62,7 +62,7 @@ target_link_libraries(onnx_proto
 # -------------------------------------------------------------------
 add_library(tensor_compiler_headers INTERFACE)
 target_include_directories(tensor_compiler_headers
-    INTERFACE 
+    INTERFACE
         ${CMAKE_SOURCE_DIR}/include
         ${CMAKE_SOURCE_DIR}/include/structure
 )
@@ -72,9 +72,9 @@ add_library(tensor_compiler::headers ALIAS tensor_compiler_headers)
 # Main executable
 # -------------------------------------------------------------------
 add_executable(${PROJECT_NAME}
-    src/main.cpp
-    src/driver.cpp
-    src/codegen/codegen.cpp
+    lib/main.cpp
+    lib/driver.cpp
+    lib/codegen/codegen.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
