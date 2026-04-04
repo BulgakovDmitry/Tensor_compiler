@@ -8,10 +8,8 @@ namespace tensor_compiler {
 
 class MLIRToLLVMLowering final {
 private:
-    mlir::MLIRContext &context_;
-    mlir::OwningOpRef<mlir::ModuleOp> mlirModule_;
-
-
+  mlir::MLIRContext &context_;
+  mlir::OwningOpRef<mlir::ModuleOp> mlirModule_;
 };
 
 } // namespace tensor_compiler

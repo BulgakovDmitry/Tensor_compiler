@@ -18,21 +18,21 @@
 namespace tensor_compiler {
 
 class Codegen {
-  private:
-    mlir::DialectRegistry registry_;
-    std::unique_ptr<mlir::MLIRContext> context_;
+private:
+  mlir::DialectRegistry registry_;
+  std::unique_ptr<mlir::MLIRContext> context_;
 
-  public:
-    Codegen();
+public:
+  Codegen();
 
-    mlir::OwningOpRef<mlir::ModuleOp> generate(const Graph &graph);
+  mlir::OwningOpRef<mlir::ModuleOp> generate(const Graph &graph);
 
-    mlir::MLIRContext &get_context() noexcept;
-    const mlir::MLIRContext &get_context() const noexcept;
+  mlir::MLIRContext &get_context() noexcept;
+  const mlir::MLIRContext &get_context() const noexcept;
 
-  private:
-    mlir::Type convert_element_type(int onnx_type) const;
-    mlir::RankedTensorType convert_tensor_type(const Tensor &tensor) const;
+private:
+  mlir::Type convert_element_type(int onnx_type) const;
+  mlir::RankedTensorType convert_tensor_type(const Tensor &tensor) const;
 };
 
 } // namespace tensor_compiler
