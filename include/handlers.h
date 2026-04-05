@@ -6,7 +6,6 @@
 namespace tensor_compiler {
 
 inline int extract_elem_type(const onnx::ValueInfoProto &v) {
-inline int extract_elem_type(const onnx::ValueInfoProto &v) {
   if (!v.has_type() || !v.type().has_tensor_type())
     return onnx::TensorProto_DataType_UNDEFINED;
   return v.type().tensor_type().elem_type();
@@ -32,7 +31,6 @@ inline std::vector<int64_t> extract_dims(const onnx::ValueInfoProto &v) {
     return dims;
 }
 
-inline std::string extract_tensor_bytes(const onnx::TensorProto &t) {
 inline std::string extract_tensor_bytes(const onnx::TensorProto &t) {
   if (!t.raw_data().empty())
     return t.raw_data();

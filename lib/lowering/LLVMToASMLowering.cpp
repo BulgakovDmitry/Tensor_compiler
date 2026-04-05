@@ -27,7 +27,7 @@ LogicalResult generateAssembly(llvm::Module *llvmModule,
 
   std::string error;
   const llvm::Target *target = llvm::TargetRegistry::lookupTarget(
-      triple.empty() ? llvmModule->getTargetTriple() : triple, error);
+      triple.empty() ? llvmModule->getTargetTriple().str() : triple, error);
   if (!target) {
     llvm::errs() << "Error: " << error << "\n";
     return failure();
@@ -48,7 +48,7 @@ LogicalResult generateAssembly(llvm::Module *llvmModule,
   }
 
   llvmModule->setDataLayout(TM->createDataLayout());
-  llvmModule->setTargetTriple(TM->getTargetTriple().str());
+  llvmModule->setTargetTriple(TM->getTargetTriple());
 
   llvm::legacy::PassManager PM;
   llvm::CodeGenFileType fileType = llvm::CodeGenFileType::AssemblyFile;
