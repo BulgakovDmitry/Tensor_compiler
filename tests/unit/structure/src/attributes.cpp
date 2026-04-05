@@ -5,7 +5,7 @@
 #include <variant>
 #include <vector>
 
-#include "attribute.hpp"
+#include "attribute.h"
 
 using namespace tensor_compiler;
 

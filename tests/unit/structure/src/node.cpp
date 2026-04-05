@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "node.hpp"
+#include "node.h"
 
 using namespace tensor_compiler;
 
@@ -38,8 +38,8 @@ TEST(Node, SetNameUpdatesName) {
 
     n.set_name("B");
     EXPECT_EQ(n.get_name(), "B");
-    EXPECT_EQ(n.get_opcode(), "Mul"); 
-    EXPECT_EQ(n.get_id(), 1u);        
+    EXPECT_EQ(n.get_opcode(), "Mul");
+    EXPECT_EQ(n.get_id(), 1u);
 }
 
 // -------------------------------- set_inputs ----------------------------------
