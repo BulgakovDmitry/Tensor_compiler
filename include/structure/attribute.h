@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ATTRIBUTE_HPP
-#define INCLUDE_ATTRIBUTE_HPP
+#ifndef INCLUDE_ATTRIBUTE_H
+#define INCLUDE_ATTRIBUTE_H
 
 #include <string>
 #include <variant>
@@ -47,4 +47,4 @@ public:
 
 } // namespace tensor_compiler
 
-#endif // INCLUDE_ATTRIBUTE_HPP
+#endif // INCLUDE_ATTRIBUTE_H

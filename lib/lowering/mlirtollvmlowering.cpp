@@ -3,8 +3,6 @@
 
 namespace tensor_compiler {
 
-void lower() {
 
-}
 
 } // tensor_compiler

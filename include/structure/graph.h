@@ -1,5 +1,5 @@
-#ifndef INCLUDE_GRAPH_HPP
-#define INCLUDE_GRAPH_HPP
+#ifndef INCLUDE_GRAPH_H
+#define INCLUDE_GRAPH_H
 
 #include "handlers.h"
 #include "node.h"
@@ -117,4 +117,4 @@ private:
 
 } // namespace tensor_compiler
 
-#endif // INCLUDE_GRAPH_HPP
+#endif // INCLUDE_GRAPH_H

@@ -1,5 +1,5 @@
-#ifndef INCLUDE_DUMP_PATH_GEN_HPP
-#define INCLUDE_DUMP_PATH_GEN_HPP
+#ifndef INCLUDE_DUMP_PATH_GEN_H
+#define INCLUDE_DUMP_PATH_GEN_H
 
 #include <filesystem>
 
@@ -32,4 +32,4 @@ make_dump_paths(std::string_view basename = "dump",
 
 } // namespace tensor_compiler
 
-#endif // INCLUDE_DUMP_PATH_GEN_HPP
+#endif // INCLUDE_DUMP_PATH_GEN_H

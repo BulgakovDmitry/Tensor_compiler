@@ -1,5 +1,5 @@
-#ifndef INCLUDE_GRAPHVIZ_DUMPER_HPP
-#define INCLUDE_GRAPHVIZ_DUMPER_HPP
+#ifndef INCLUDE_GRAPHVIZ_DUMPER_HDRIVER_HPP
+#define INCLUDE_GRAPHVIZ_DUMPER_HDRIVER_HPP
 
 #include "structure/attribute.h"
 #include "structure/graph.h"
@@ -279,4 +279,4 @@ private:
 
 } // namespace tensor_compiler
 
-#endif // INCLUDE_GRAPHVIZ_DUMPER_HPP
+#endif // INCLUDE_GRAPHVIZ_DUMPER_H

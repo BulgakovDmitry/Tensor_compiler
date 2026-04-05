@@ -2,8 +2,8 @@
 /// @brief Provides a high-level driver function to load and parse an ONNX
 /// model.
 
-#ifndef INCLUDE_DRIVER_HPP
-#define INCLUDE_DRIVER_HPP
+#ifndef INCLUDE_DRIVER_H
+#define INCLUDE_DRIVER_H
 
 #include <string>
 
@@ -17,4 +17,4 @@ int driver(const std::string &model_onnx);
 
 } // namespace tensor_compiler
 
-#endif // INCLUDE_DRIVER_HPP
+#endif // INCLUDE_DRIVER_H

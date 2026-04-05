@@ -1,5 +1,5 @@
-#ifndef INCLUDE_EXECUTOR_HPP
-#define INCLUDE_EXECUTOR_HPP
+#ifndef INCLUDE_EXECUTOR_H
+#define INCLUDE_EXECUTOR_H
 
 #include "structure/attribute.h"
 #include "structure/graph.h"
@@ -140,4 +140,4 @@ inline std::vector<const Node *> Executor::topological_sort() {
 
 } // namespace tensor_compiler
 
-#endif // INCLUDE_EXECUTOR_HPP
+#endif // INCLUDE_EXECUTOR_H

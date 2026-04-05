@@ -1,5 +1,5 @@
-#ifndef INCLUDE_HANDLERS_HPP
-#define INCLUDE_HANDLERS_HPP
+#ifndef INCLUDE_HANDLERS_H
+#define INCLUDE_HANDLERS_H
 
 #include "onnx.pb.h"
 #include <ostream>
@@ -51,4 +51,4 @@ static std::string extract_tensor_bytes(const onnx::TensorProto &t) {
 
 } // namespace tensor_compiler
 
-#endif // INCLUDE_HANDLERS_HPP
+#endif // INCLUDE_HANDLERS_H

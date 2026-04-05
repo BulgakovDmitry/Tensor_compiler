@@ -1,5 +1,5 @@
-#ifndef INCLUDE_NODE_HPP
-#define INCLUDE_NODE_HPP
+#ifndef INCLUDE_NODE_H
+#define INCLUDE_NODE_H
 
 #include "attribute.h"
 #include "onnx.pb.h"
@@ -112,4 +112,4 @@ private:
 
 } // namespace tensor_compiler
 
-#endif // INCLUDE_NODE_HPP
+#endif // INCLUDE_NODE_H

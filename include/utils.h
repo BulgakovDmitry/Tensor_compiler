@@ -1,5 +1,5 @@
-#ifndef UTILS_HPP
-#define UTILS_HPP
+#ifndef UTILS_H
+#define UTILS_H
 
 #include "structure/graph.h"
 #include "structure/node.h"
@@ -62,4 +62,4 @@ inline void dump_nodes(const Graph &graph, std::ostream &os) {
 
 } // namespace tensor_compiler
 
-#endif // UTILS_HPP
+#endif // UTILS_H

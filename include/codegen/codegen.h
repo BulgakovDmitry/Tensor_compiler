@@ -1,5 +1,5 @@
-#ifndef INCLUDE_CODEGEN_CODEGEN_HPP
-#define INCLUDE_CODEGEN_CODEGEN_HPP
+#ifndef INCLUDE_CODEGEN_CODEGEN_H
+#define INCLUDE_CODEGEN_CODEGEN_H
 
 #include <memory>
 
@@ -37,4 +37,4 @@ private:
 
 } // namespace tensor_compiler
 
-#endif // INCLUDE_CODEGEN_CODEGEN_HPP
+#endif // INCLUDE_CODEGEN_CODEGEN_H

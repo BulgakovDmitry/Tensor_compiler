@@ -1,5 +1,5 @@
-#ifndef INCLUDE_TENSOR_HPP
-#define INCLUDE_TENSOR_HPP
+#ifndef INCLUDE_TENSOR_H
+#define INCLUDE_TENSOR_H
 
 #include "onnx.pb.h"
 #include <string>
@@ -112,4 +112,4 @@ public:
 
 } // namespace tensor_compiler
 
-#endif // INCLUDE_TENSOR_HPP
+#endif // INCLUDE_TENSOR_H
