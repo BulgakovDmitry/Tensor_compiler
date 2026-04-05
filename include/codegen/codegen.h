@@ -27,12 +27,73 @@ public:
 
   mlir::OwningOpRef<mlir::ModuleOp> generate(const Graph &graph);
 
-  mlir::MLIRContext &get_context() noexcept;
-  const mlir::MLIRContext &get_context() const noexcept;
+  mlir::MLIRContext &getContext() noexcept;
+  const mlir::MLIRContext &getContext() const noexcept;
 
 private:
-  mlir::Type convert_element_type(int onnx_type) const;
-  mlir::RankedTensorType convert_tensor_type(const Tensor &tensor) const;
+  mlir::Type convertElementType(int onnx_type) const;
+  mlir::RankedTensorType convertTensorType(const Tensor &tensor) const;
+
+  std::vector<mlir::Type> buildInputTypes(const Graph &graph) const;
+  std::vector<mlir::Type> buildResultTypes(const Graph &graph) const;
+
+  void bindFunctionInputs(const Graph &graph,
+                            mlir::Block *entry_block,
+                            std::unordered_map<std::string, mlir::Value> &values) const;
+
+
+  std::vector<mlir::Value> collectReturnValues(
+      const Graph &graph,
+      const std::unordered_map<std::string, mlir::Value> &values) const;
+
+  void genNodes(mlir::OpBuilder &builder,
+                mlir::Location loc,
+                const Graph &graph,
+                std::unordered_map<std::string, mlir::Value> &values) const;
+
+  void genNode(mlir::OpBuilder &builder,
+                mlir::Location loc,
+                const Node &node,
+                std::unordered_map<std::string, mlir::Value> &values) const;
+
+  void genMulNode(mlir::OpBuilder &builder,
+                   mlir::Location loc,
+                   const Node &node,
+                   std::unordered_map<std::string, mlir::Value> &values) const;
+
+  mlir::Value genConstantTensor(mlir::OpBuilder &builder,
+                                mlir::Location loc,
+                                const Tensor &tensor) const;
+
+  void genConstants(mlir::OpBuilder &builder,
+                     mlir::Location loc,
+                     const Graph &graph,
+                     std::unordered_map<std::string, mlir::Value> &values) const;
+
+  void genAddNode(mlir::OpBuilder &builder,
+                   mlir::Location loc,
+                   const Node &node,
+                   std::unordered_map<std::string, mlir::Value> &values) const;
+
+  void genIdentityNode(mlir::OpBuilder &builder,
+                        mlir::Location loc,
+                        const Node &node,
+                        std::unordered_map<std::string, mlir::Value> &values) const;
+
+  void genSubNode(mlir::OpBuilder &builder,
+                   mlir::Location loc,
+                   const Node &node,
+                   std::unordered_map<std::string, mlir::Value> &values) const;
+
+  void genDivNode(mlir::OpBuilder &builder,
+                   mlir::Location loc,
+                   const Node &node,
+                   std::unordered_map<std::string, mlir::Value> &values) const;
+
+  void genReluNode(mlir::OpBuilder &builder,
+                    mlir::Location loc,
+                    const Node &node,
+                    std::unordered_map<std::string, mlir::Value> &values) const;
 };
 
 } // namespace tensor_compiler
