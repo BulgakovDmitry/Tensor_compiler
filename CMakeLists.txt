@@ -17,6 +17,8 @@ find_package(MLIR REQUIRED CONFIG)
 list(APPEND CMAKE_MODULE_PATH "${MLIR_CMAKE_DIR}")
 list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
+
 include(AddLLVM)
 include(AddMLIR)
 include(HandleLLVMOptions)
@@ -101,26 +103,32 @@ target_link_libraries(${PROJECT_NAME}
         MLIRMemRefToLLVM
         MLIRControlFlowToLLVM
         MLIRMathToLLVM
-
         MLIRLinalgTransforms
         MLIRSCFToControlFlow
         MLIRConvertToLLVMPass
-
         MLIRLLVMDialect
         MLIRTargetLLVMIRExport
+        MLIRFuncToLLVMIRTranslation
+        MLIRArithToLLVMIRTranslation
+        MLIRMemRefToLLVMIRTranslation
+        MLIRBuiltinToLLVMIRTranslation
 
         LLVMCore
         LLVMTarget
-        LLVMSupport
-        LLVMAnalysis
-        LLVMTransformUtils
-
+        LLVMOption
         LLVMX86Info
         LLVMX86Desc
         LLVMX86AsmParser
         LLVMX86CodeGen
         LLVMMC
-        LLVMMCParser      
+        LLVMMCParser
+        LLVMAnalysis
+        LLVMTransformUtils
+        LLVMSupport
+)
+
+target_compile_definitions(tensor_compiler PRIVATE
+    ${LLVM_DEFINITIONS}
 )
 
 # -------------------------------------------------------------------

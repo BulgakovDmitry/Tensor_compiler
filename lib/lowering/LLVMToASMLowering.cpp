@@ -13,7 +13,8 @@
 #include <string>
 
 using namespace mlir;
-using namespace tensor_compiler;
+
+namespace tensor_compiler {
 
 LogicalResult generateAssembly(llvm::Module *llvmModule,
                                       const std::string &triple,
@@ -27,7 +28,7 @@ LogicalResult generateAssembly(llvm::Module *llvmModule,
 
   std::string error;
   const llvm::Target *target = llvm::TargetRegistry::lookupTarget(
-      triple.empty() ? llvmModule->getTargetTriple().str() : triple, error);
+      triple.empty() ? llvmModule->getTargetTriple() : triple, error);
   if (!target) {
     llvm::errs() << "Error: " << error << "\n";
     return failure();
@@ -48,7 +49,7 @@ LogicalResult generateAssembly(llvm::Module *llvmModule,
   }
 
   llvmModule->setDataLayout(TM->createDataLayout());
-  llvmModule->setTargetTriple(TM->getTargetTriple());
+  llvmModule->setTargetTriple(TM->getTargetTriple().str());
 
   llvm::legacy::PassManager PM;
   llvm::CodeGenFileType fileType = llvm::CodeGenFileType::AssemblyFile;
@@ -61,3 +62,5 @@ LogicalResult generateAssembly(llvm::Module *llvmModule,
   PM.run(*llvmModule);
   return success();
 }
+
+} // namespace tensor_compiler

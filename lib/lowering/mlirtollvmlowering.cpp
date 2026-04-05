@@ -10,6 +10,11 @@
 #include "mlir/Dialect/Linalg/Passes.h"
 #include "mlir/Dialect/SCF/Transforms/Passes.h"
 #include "mlir/Target/LLVMIR/Export.h"
+#include "mlir/Target/LLVMIR/Dialect/Builtin/BuiltinToLLVMIRTranslation.h"
+#include "mlir/Target/LLVMIR/Dialect/Func/FuncToLLVMIRTranslation.h"
+#include "mlir/Target/LLVMIR/Dialect/Arith/ArithToLLVMIRTranslation.h"
+#include "mlir/Target/LLVMIR/Dialect/MemRef/MemRefToLLVMIRTranslation.h"
+#include "mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h"
 
 using namespace mlir;
 using namespace tensor_compiler;
@@ -52,7 +57,33 @@ LogicalResult MLIRToLLVMLowering::lower(OwningOpRef<ModuleOp> &&mlirModule) {
 }
 
 std::unique_ptr<llvm::Module> MLIRToLLVMLowering::MLIRToLLVMLowering::exportToLLVM() {
-    if (!mlirModule_) return nullptr;
+    if (!mlirModule_) {
+        llvm::errs() << "Error: No module to export\n";
+        return nullptr;
+    }
+
+    mlir::DialectRegistry registry;
+    mlir::registerBuiltinDialectTranslation(registry);
+    mlir::registerFuncDialectTranslation(registry);
+    mlir::registerArithDialectTranslation(registry);
+    mlir::registerMemRefDialectTranslation(registry);
+    mlir::registerLLVMDialectTranslation(registry);
+
+    context_.appendDialectRegistry(registry);
+    context_.loadAllAvailableDialects();
+
     llvm::LLVMContext llvmCtx;
-    return translateModuleToLLVMIR(*mlirModule_, llvmCtx, "tensor_network");
+    auto llvmModule = translateModuleToLLVMIR(*mlirModule_, llvmCtx, "tensor_network");
+
+    if (!llvmModule) {
+        llvm::errs() << "Error: translateModuleToLLVMIR returned nullptr\n";
+
+        llvm::errs() << "=== Module content before export ===\n";
+        mlirModule_->print(llvm::errs());
+        llvm::errs() << "\n=== End module ===\n";
+
+        return nullptr;
+    }
+
+    return llvmModule;
 }

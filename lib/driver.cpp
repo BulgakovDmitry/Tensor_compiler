@@ -2,6 +2,8 @@
 #include "codegen/codegen.h"
 #include "graph_dump/dump_path_gen.h"
 #include "graph_dump/graphviz_dumper.h"
+#include "lowering/mlirtollvmlowering.h"
+#include "lowering/LLVMToASMLowering.h"
 #include "onnx.pb.h"
 #include "structure/graph.h"
 #include <cstring>
@@ -9,6 +11,51 @@
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <iostream>
 #include <string>
+
+#include "mlir/IR/MLIRContext.h"
+#include "mlir/IR/OwningOpRef.h"
+#include "llvm/IR/Module.h"
+
+#include "mlir/Dialect/Func/IR/FuncOps.h"
+#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/MemRef/IR/MemRef.h"
+#include "mlir/Dialect/Linalg/IR/Linalg.h"
+#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
+
+#include "mlir/Support/LogicalResult.h"
+#include "llvm/Support/CommandLine.h"
+#include "llvm/Support/FileSystem.h"
+#include "llvm/Support/raw_ostream.h"
+
+// CLI arguments for controlling compilation
+namespace {
+
+llvm::cl::opt<std::string> emitTarget(
+    "emit",
+    llvm::cl::desc("Compilation stage: mlir, llvm, or asm"),
+    llvm::cl::init("llvm")
+);
+
+llvm::cl::opt<std::string> outputFilename(
+    "o",
+    llvm::cl::desc("Output filename (for assembly)"),
+    llvm::cl::value_desc("filename"),
+    llvm::cl::init("-")  // "-" = stdout
+);
+
+llvm::cl::opt<std::string> targetTriple(
+    "mtriple",
+    llvm::cl::desc("Target triple for code generation"),
+    llvm::cl::init("")
+);
+
+llvm::cl::opt<unsigned> optLevel(
+    "O",
+    llvm::cl::desc("Optimization level (0-3)"),
+    llvm::cl::init(2)
+);
+
+} // anonymous namespace
 
 namespace tensor_compiler {
 
@@ -39,12 +86,70 @@ int driver(const std::string &model_onnx) {
 #endif
 
     tensor_compiler::Codegen codegen{};
-    auto module = codegen.generate(compute_graph);
+    auto mlirModule = codegen.generate(compute_graph);
+    if (!mlirModule) {
+        llvm::errs() << "Error: Codegen returned null module\n";
+        return 1;
+    }
 
-    module->print(llvm::outs());
-    llvm::outs() << "\n";
+    if (emitTarget == "mlir") {
+        mlirModule->print(llvm::outs());
+        llvm::outs() << "\n";
+        return 0;
+    }
 
-    return 0;
+    mlir::MLIRContext context;
+    context.loadDialect<mlir::func::FuncDialect, mlir::arith::ArithDialect,
+                        mlir::memref::MemRefDialect, mlir::linalg::LinalgDialect,
+                        mlir::LLVM::LLVMDialect>();
+
+    MLIRToLLVMLowering lowering(context);
+    if (mlir::failed(lowering.lower(std::move(mlirModule)))) {
+        llvm::errs() << "Error: MLIR to LLVM lowering failed\n";
+        return 1;
+    }
+
+    auto llvmModule = lowering.exportToLLVM();
+    if (!llvmModule) {
+        llvm::errs() << "Error: Failed to export LLVM IR\n";
+        return 1;
+    }
+
+    if (emitTarget == "llvm") {
+        llvmModule->print(llvm::outs(), nullptr);
+        return 0;
+    }
+
+    if (emitTarget == "asm") {
+        std::error_code ec;
+        llvm::raw_fd_ostream asmStream(
+            outputFilename == "-" ? "" : outputFilename.getValue(),
+            ec,
+            llvm::sys::fs::OF_None);
+
+        if (ec) {
+            llvm::errs() << "Error: Could not open output file '"
+                        << outputFilename.getValue() << "': " << ec.message() << "\n";
+            return 1;
+        }
+
+        llvm::raw_pwrite_stream &outStream =
+            (outputFilename == "-") ? llvm::outs() : asmStream;
+
+        if (mlir::failed(generateAssembly(
+                llvmModule.get(), targetTriple, optLevel, outStream))) {
+            llvm::errs() << "Error: Assembly generation failed\n";
+            return 1;
+        }
+
+        if (outputFilename != "-") {
+            llvm::outs() << "Assembly written to " << outputFilename << "\n";
+        }
+        return 0;
+    }
+
+    llvm::errs() << "Unknown emit target: " << emitTarget << "\n";
+    return 1;
 }
 
 } // namespace tensor_compiler
