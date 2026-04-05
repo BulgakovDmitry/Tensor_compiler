@@ -1,42 +1,58 @@
 #include "lowering/mlirtollvmlowering.h"
-#include "mlir/Conversion/LLVMCommon/TypeConverter.h"
-#include "mlir/Conversion/SCFToControlFlow/SCFToControlFlow.h"
-#include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/IR/BuiltinOps.h"
-#include "mlir/Pass/PassRegistry.h"
 #include "mlir/Pass/PassManager.h"
 #include "mlir/Support/LogicalResult.h"
 #include "llvm/Support/raw_ostream.h"
-#include "mlir/Conversion/FuncToLLVM/ConvertFuncToLLVM.h"
-#include "mlir/Conversion/ArithToLLVM/ArithToLLVM.h"
+#include "mlir/Conversion/Passes.h"
 #include "mlir/Conversion/MemRefToLLVM/MemRefToLLVM.h"
-#include "mlir/Conversion/ControlFlowToLLVM/ControlFlowToLLVM.h"
-#include "mlir/Conversion/MathToLLVM/MathToLLVM.h"
+#include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Transforms/Passes.h"
 #include "mlir/Dialect/Linalg/Passes.h"
 #include "mlir/Dialect/SCF/Transforms/Passes.h"
 #include "mlir/Target/LLVMIR/Export.h"
 
-namespace tensor_compiler {
+using namespace mlir;
+using namespace tensor_compiler;
 
-mlir::LogicalResult MLIRToLLVMLowering::lower(mlir::OwningOpRef<mlir::ModuleOp> &&mlirModule) {
+LogicalResult MLIRToLLVMLowering::lower(OwningOpRef<ModuleOp> &&mlirModule) {
     if (!mlirModule) {
         llvm::errs() << "Error: Received null MLIR module\n";
-        return mlir::failure();
+        return failure();
     }
 
+    mlir::DialectRegistry registry;
+    registerConvertMemRefToLLVMInterface(registry);
+    context_.appendDialectRegistry(registry);
+
     mlirModule_ = std::move(mlirModule);
-    mlir::PassManager pm(&context_);
+    PassManager pm(&context_);
 
-    pm.addPass(mlir::createCanonicalizerPass());
-    pm.addPass(mlir::createCSEPass());
+    pm.addPass(createCanonicalizerPass());
+    pm.addPass(createCSEPass());
 
-    pm.addNestedPass<mlir::func::FuncOp>(mlir::createConvertLinalgToLoopsPass());
-    pm.addPass(mlir::createConvertSCFToCFPass());
+    pm.addNestedPass<func::FuncOp>(createConvertLinalgToLoopsPass());
+    pm.addPass(createConvertSCFToCFPass());
 
-    mlir::LLVMTypeConverter typeConverter(&context_);
+    pm.addPass(createConvertMathToLLVMPass());
+    pm.addPass(createArithToLLVMConversionPass());
 
-    //pm.addPass(mlir)
+    pm.addPass(createFinalizeMemRefToLLVMConversionPass());
+
+    pm.addPass(createConvertControlFlowToLLVMPass());
+    pm.addPass(createConvertFuncToLLVMPass());
+
+    pm.addPass(createCanonicalizerPass());
+    pm.addPass(createCSEPass());
+
+    if (failed(pm.run(*mlirModule_))) {
+        llvm::errs() << "Lowering to LLVM dialect failed!\n";
+        return failure();
+    }
+    return success();
 }
 
-} // tensor_compiler
+std::unique_ptr<llvm::Module> MLIRToLLVMLowering::MLIRToLLVMLowering::exportToLLVM() {
+    if (!mlirModule_) return nullptr;
+    llvm::LLVMContext llvmCtx;
+    return translateModuleToLLVMIR(*mlirModule_, llvmCtx, "tensor_network");
+}

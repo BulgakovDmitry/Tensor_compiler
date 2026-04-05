@@ -1,7 +1,6 @@
 #ifndef INCLUDE_GRAPH_H
 #define INCLUDE_GRAPH_H
 
-#include "handlers.h"
 #include "node.h"
 #include "tensor.h"
 #include <string>

@@ -79,6 +79,7 @@ add_executable(${PROJECT_NAME}
     lib/structure/node.cpp
     lib/codegen/codegen.cpp
     lib/lowering/mlirtollvmlowering.cpp
+    lib/lowering/LLVMToASMLowering.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -107,6 +108,19 @@ target_link_libraries(${PROJECT_NAME}
 
         MLIRLLVMDialect
         MLIRTargetLLVMIRExport
+
+        LLVMCore
+        LLVMTarget
+        LLVMSupport
+        LLVMAnalysis
+        LLVMTransformUtils
+
+        LLVMX86Info
+        LLVMX86Desc
+        LLVMX86AsmParser
+        LLVMX86CodeGen
+        LLVMMC
+        LLVMMCParser      
 )
 
 # -------------------------------------------------------------------
