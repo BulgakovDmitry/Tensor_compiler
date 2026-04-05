@@ -6,16 +6,16 @@
 namespace llvm {
 class Module;
 class raw_pwrite_stream;
-}
+} // namespace llvm
 
 #include <string>
 
 namespace tensor_compiler {
 
 mlir::LogicalResult generateAssembly(llvm::Module *llvmModule,
-                                      const std::string &triple,
-                                      unsigned optLevel,
-                                      llvm::raw_pwrite_stream &os);
+                                     const std::string &triple,
+                                     unsigned optLevel,
+                                     llvm::raw_pwrite_stream &os);
 
 } // namespace tensor_compiler
 
