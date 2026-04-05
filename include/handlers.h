@@ -11,19 +11,23 @@ inline int extract_elem_type(const onnx::ValueInfoProto &v) {
   return v.type().tensor_type().elem_type();
 }
 
-inline google::protobuf::RepeatedField<int64_t>
-extract_dims(const onnx::ValueInfoProto &v) {
-  google::protobuf::RepeatedField<int64_t> dims;
+inline std::vector<int64_t> extract_dims(const onnx::ValueInfoProto &v) {
+  std::vector<int64_t> dims;
+
   if (!v.has_type() || !v.type().has_tensor_type() ||
-      !v.type().tensor_type().has_shape())
+      !v.type().tensor_type().has_shape()) {
     return dims;
+  }
 
   const auto &shape = v.type().tensor_type().shape();
+  dims.reserve(shape.dim_size());
+
   for (int i = 0; i < shape.dim_size(); ++i) {
     const auto &d = shape.dim(i);
     int64_t val = d.has_dim_value() ? static_cast<int64_t>(d.dim_value()) : -1;
-    dims.Add(val);
+    dims.push_back(val);
   }
+
   return dims;
 }
 

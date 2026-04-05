@@ -2,6 +2,6 @@
 build/
 onnx/onnx.pb.h
 onnx/onnx.pb.cc
-utils.txt
+utils*
 dump/
 .vscode/

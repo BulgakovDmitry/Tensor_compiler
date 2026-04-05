@@ -31,7 +31,7 @@ LogicalResult MLIRToLLVMLowering::lower(OwningOpRef<ModuleOp> &&mlirModule) {
     pm.addPass(createCSEPass());
 
     pm.addNestedPass<func::FuncOp>(createConvertLinalgToLoopsPass());
-    pm.addPass(createConvertSCFToCFPass());
+    // pm.addPass(createConvertSCFToCFPass());
 
     pm.addPass(createConvertMathToLLVMPass());
     pm.addPass(createArithToLLVMConversionPass());

@@ -33,8 +33,16 @@ void Tensor::set_kind(Tensor_kind kind) { kind_ = kind; }
 void Tensor::set_data(const std::string &data) { data_ = data; }
 void Tensor::set_shape(const std::vector<int64_t> &shape) {
     shape_ = shape;
+    dim_.Clear();
+    for (int64_t d : shape_) {
+        dim_.Add(d);
+    }
 }
-void Tensor::set_dim(const dim_type dim) { dim_ = dim; }
+
+void Tensor::set_dim(const dim_type dim) {
+    dim_ = dim;
+    shape_.assign(dim_.begin(), dim_.end());
+}
 
 bool Tensor::is_constant() const {
     return kind_ == Tensor_kind::constant;

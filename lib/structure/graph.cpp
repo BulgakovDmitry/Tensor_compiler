@@ -85,7 +85,7 @@ Tensor Graph::handle_tensor(const onnx::ValueInfoProto &t,
                                    const Tensor_kind &type) {
     Tensor tensor{};
     tensor.set_name(t.name());
-    tensor.set_dim(extract_dims(t));
+    tensor.set_shape(extract_dims(t));
     tensor.set_type(extract_elem_type(t));
     tensor.set_kind(type);
     return tensor;
