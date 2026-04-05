@@ -1,15 +1,15 @@
 #ifndef INCLUDE_LOWERING_MLIRTOLLVMLOWERING_H
 #define INCLUDE_LOWERING_MLIRTOLLVMLOWERING_H
 
+#include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/IR/OwningOpRef.h"
-#include "mlir/IR/BuiltinOps.h"
 #include "mlir/Support/LogicalResult.h"
 
 #include <memory>
 
 namespace llvm {
-  class Module;
+class Module;
 }
 
 namespace tensor_compiler {
@@ -23,7 +23,7 @@ public:
   MLIRToLLVMLowering(mlir::MLIRContext &context) : context_{context} {}
 
   mlir::LogicalResult lower(mlir::OwningOpRef<mlir::ModuleOp> &&mlirModule);
-  std::unique_ptr<llvm::Module> exportToLLVM ();
+  std::unique_ptr<llvm::Module> exportToLLVM();
 };
 
 } // namespace tensor_compiler
