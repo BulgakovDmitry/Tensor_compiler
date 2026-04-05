@@ -44,8 +44,6 @@ int driver(const std::string &model_onnx) {
     module->print(llvm::outs());
     llvm::outs() << "\n";
 
-    
-
     return 0;
 }
 
