@@ -74,7 +74,11 @@ add_library(tensor_compiler::headers ALIAS tensor_compiler_headers)
 add_executable(${PROJECT_NAME}
     lib/main.cpp
     lib/driver.cpp
+    lib/structure/tensor.cpp
+    lib/structure/graph.cpp
+    lib/structure/node.cpp
     lib/codegen/codegen.cpp
+    lib/lowering/mlirtollvmlowering.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -87,6 +91,22 @@ target_link_libraries(${PROJECT_NAME}
         MLIRFuncDialect
         MLIRArithDialect
         MLIRTensorDialect
+
+        MLIRPass
+        MLIRTransforms
+
+        MLIRFuncToLLVM
+        MLIRArithToLLVM
+        MLIRMemRefToLLVM
+        MLIRControlFlowToLLVM
+        MLIRMathToLLVM
+
+        MLIRLinalgTransforms
+        MLIRSCFToControlFlow
+        MLIRConvertToLLVMPass
+
+        MLIRLLVMDialect
+        MLIRTargetLLVMIRExport
 )
 
 # -------------------------------------------------------------------

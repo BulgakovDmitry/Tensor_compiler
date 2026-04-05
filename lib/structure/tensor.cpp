@@ -1,3 +1,4 @@
+#include "structure/tensor.h"
 
 namespace tensor_compiler {
 
@@ -5,7 +6,7 @@ namespace tensor_compiler {
 // @section Implementations
 // Implementation of tensor methods.
 // ----------------------------------------------------------------------------
-inline Tensor Tensor::create(const std::string &name,
+Tensor Tensor::create(const std::string &name,
                              const std::vector<int64_t> &shape,
                              const std::vector<float> &data,
                              const Tensor_kind &kind) {
@@ -19,23 +20,23 @@ inline Tensor Tensor::create(const std::string &name,
                   kind);
 }
 
-inline const std::string &Tensor::get_name() const { return name_; }
-inline const int Tensor::get_type() const { return type_; }
-inline const std::string &Tensor::get_data() const { return data_; }
-inline const std::vector<int64_t> &Tensor::get_shape() const { return shape_; }
-inline Tensor_kind Tensor::get_kind() const { return kind_; }
-inline const dim_type Tensor::get_dim() const { return dim_; }
+const std::string &Tensor::get_name() const { return name_; }
+int Tensor::get_type() const { return type_; }
+const std::string &Tensor::get_data() const { return data_; }
+const std::vector<int64_t> &Tensor::get_shape() const { return shape_; }
+Tensor_kind Tensor::get_kind() const { return kind_; }
+const dim_type Tensor::get_dim() const { return dim_; }
 
-inline void Tensor::set_name(const std::string &name) { name_ = name; }
-inline void Tensor::set_type(const int type) { type_ = type; }
-inline void Tensor::set_kind(Tensor_kind kind) { kind_ = kind; }
-inline void Tensor::set_data(const std::string &data) { data_ = data; }
-inline void Tensor::set_shape(const std::vector<int64_t> &shape) {
+void Tensor::set_name(const std::string &name) { name_ = name; }
+void Tensor::set_type(const int type) { type_ = type; }
+void Tensor::set_kind(Tensor_kind kind) { kind_ = kind; }
+void Tensor::set_data(const std::string &data) { data_ = data; }
+void Tensor::set_shape(const std::vector<int64_t> &shape) {
     shape_ = shape;
 }
-inline void Tensor::set_dim(const dim_type dim) { dim_ = dim; }
+void Tensor::set_dim(const dim_type dim) { dim_ = dim; }
 
-inline bool Tensor::is_constant() const {
+bool Tensor::is_constant() const {
     return kind_ == Tensor_kind::constant;
 }
 

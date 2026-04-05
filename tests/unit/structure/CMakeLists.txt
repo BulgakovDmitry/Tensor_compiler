@@ -7,6 +7,9 @@ set(SRC_LIST
     src/attributes.cpp
     src/node.cpp
     src/graph.cpp
+    ../../../lib/structure/tensor.cpp
+    ../../../lib/structure/graph.cpp
+    ../../../lib/structure/node.cpp
 )
 
 add_executable(structure ${SRC_LIST})
@@ -14,7 +17,7 @@ add_executable(structure ${SRC_LIST})
 target_include_directories(structure PRIVATE ${CMAKE_BINARY_DIR}/onnx_generated)
 
 target_link_libraries(structure
-    PRIVATE 
+    PRIVATE
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -24,4 +27,4 @@ target_link_libraries(structure
 
 gtest_discover_tests(structure
     PROPERTIES LABELS "unit"
-)  
+)
