@@ -12,7 +12,6 @@ private:
   mlir::OwningOpRef<mlir::ModuleOp> mlirModule_;
 
 public:
-  
 };
 
 } // namespace tensor_compiler
