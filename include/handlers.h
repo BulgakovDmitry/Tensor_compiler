@@ -12,23 +12,23 @@ inline int extract_elem_type(const onnx::ValueInfoProto &v) {
 }
 
 inline std::vector<int64_t> extract_dims(const onnx::ValueInfoProto &v) {
-    std::vector<int64_t> dims;
+  std::vector<int64_t> dims;
 
-    if (!v.has_type() || !v.type().has_tensor_type() ||
-        !v.type().tensor_type().has_shape()) {
-        return dims;
-    }
-
-    const auto &shape = v.type().tensor_type().shape();
-    dims.reserve(shape.dim_size());
-
-    for (int i = 0; i < shape.dim_size(); ++i) {
-        const auto &d = shape.dim(i);
-        int64_t val = d.has_dim_value() ? static_cast<int64_t>(d.dim_value()) : -1;
-        dims.push_back(val);
-    }
-
+  if (!v.has_type() || !v.type().has_tensor_type() ||
+      !v.type().tensor_type().has_shape()) {
     return dims;
+  }
+
+  const auto &shape = v.type().tensor_type().shape();
+  dims.reserve(shape.dim_size());
+
+  for (int i = 0; i < shape.dim_size(); ++i) {
+    const auto &d = shape.dim(i);
+    int64_t val = d.has_dim_value() ? static_cast<int64_t>(d.dim_value()) : -1;
+    dims.push_back(val);
+  }
+
+  return dims;
 }
 
 inline std::string extract_tensor_bytes(const onnx::TensorProto &t) {
