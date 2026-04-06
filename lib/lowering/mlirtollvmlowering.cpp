@@ -1,22 +1,25 @@
 #include "lowering/mlirtollvmlowering.h"
 #include "mlir/IR/BuiltinOps.h"
+#include "mlir/IR/MLIRContext.h"
 #include "mlir/Pass/PassManager.h"
 #include "mlir/Support/LogicalResult.h"
 #include "llvm/Support/raw_ostream.h"
 #include "mlir/Conversion/Passes.h"
+#include "mlir/Dialect/Bufferization/Transforms/Passes.h"
+#include "mlir/Dialect/Bufferization/Transforms/OneShotAnalysis.h"
 #include "mlir/Conversion/MemRefToLLVM/MemRefToLLVM.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Transforms/Passes.h"
 #include "mlir/Dialect/Linalg/Passes.h"
 #include "mlir/Dialect/SCF/Transforms/Passes.h"
 #include "mlir/Target/LLVMIR/Export.h"
-#include "mlir/Target/LLVMIR/Dialect/Builtin/BuiltinToLLVMIRTranslation.h"
-#include "mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h"
 #include "mlir/Target/LLVMIR/Dialect/All.h"
 
 using namespace mlir;
 
 namespace tensor_compiler {
+
+MLIRToLLVMLowering::MLIRToLLVMLowering(mlir::MLIRContext &context) : context_{context} {}
 
 LogicalResult MLIRToLLVMLowering::lower(OwningOpRef<ModuleOp> &&mlirModule) {
     if (!mlirModule) {
@@ -24,18 +27,31 @@ LogicalResult MLIRToLLVMLowering::lower(OwningOpRef<ModuleOp> &&mlirModule) {
         return failure();
     }
 
-    mlir::DialectRegistry registry;
-    registerConvertMemRefToLLVMInterface(registry);
-    context_.appendDialectRegistry(registry);
-
     mlirModule_ = std::move(mlirModule);
     PassManager pm(&context_);
 
     pm.addPass(createCanonicalizerPass());
     pm.addPass(createCSEPass());
 
+    pm.addNestedPass<func::FuncOp>(createConvertElementwiseToLinalgPass());
+    pm.addPass(createPrintOpStatsPass());
+
+    bufferization::OneShotBufferizationOptions bufferizationOptions;
+    bufferizationOptions.bufferizeFunctionBoundaries = true;
+    bufferizationOptions.setFunctionBoundaryTypeConversion(
+        bufferization::LayoutMapOption::IdentityLayoutMap);
+    pm.addPass(bufferization::createOneShotBufferizePass(bufferizationOptions));
+    pm.addPass(createPrintOpStatsPass());
+
+    pm.addPass(bufferization::createBufferResultsToOutParamsPass());
+    pm.addPass(createPrintOpStatsPass());
+
     pm.addNestedPass<func::FuncOp>(createConvertLinalgToLoopsPass());
-    // pm.addPass(createConvertSCFToCFPass());
+    pm.addPass(createConvertSCFToCFPass());
+    pm.addPass(createPrintOpStatsPass());
+
+    pm.addPass(createCanonicalizerPass());
+    pm.addPass(createCSEPass());
 
     pm.addPass(createConvertMathToLLVMPass());
     pm.addPass(createArithToLLVMConversionPass());
@@ -60,13 +76,6 @@ std::unique_ptr<llvm::Module> MLIRToLLVMLowering::MLIRToLLVMLowering::exportToLL
         llvm::errs() << "Error: No module to export\n";
         return nullptr;
     }
-
-    mlir::DialectRegistry registry;
-    mlir::registerBuiltinDialectTranslation(registry); 
-    mlir::registerLLVMDialectTranslation(registry);
-
-    context_.appendDialectRegistry(registry);
-    context_.loadAllAvailableDialects();
 
     llvm::LLVMContext llvmCtx;
     auto llvmModule = translateModuleToLLVMIR(*mlirModule_, llvmCtx, "tensor_network");

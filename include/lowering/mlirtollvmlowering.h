@@ -20,7 +20,7 @@ private:
   mlir::OwningOpRef<mlir::ModuleOp> mlirModule_;
 
 public:
-  MLIRToLLVMLowering(mlir::MLIRContext &context) : context_{context} {}
+  MLIRToLLVMLowering(mlir::MLIRContext &context);
 
   mlir::LogicalResult lower(mlir::OwningOpRef<mlir::ModuleOp> &&mlirModule);
   std::unique_ptr<llvm::Module> exportToLLVM();

@@ -5,15 +5,10 @@
 #ifndef INCLUDE_DRIVER_H
 #define INCLUDE_DRIVER_H
 
-#include <string>
-
 namespace tensor_compiler {
 
-/// @brief Loads and parses an ONNX model file
-///
-/// @param model_onnx Path to the ONNX model file (e.g., "model.onnx").
-/// @return 0 on success, -1 if the file cannot be parsed or opened.
-int driver(const std::string &model_onnx);
+/// @brief Loads, parses and compile an ONNX model file
+int driver(int argc, char *argv[]);
 
 } // namespace tensor_compiler
 

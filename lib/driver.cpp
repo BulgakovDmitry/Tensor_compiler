@@ -16,11 +16,8 @@
 #include "mlir/IR/OwningOpRef.h"
 #include "llvm/IR/Module.h"
 
-#include "mlir/Dialect/Func/IR/FuncOps.h"
-#include "mlir/Dialect/Arith/IR/Arith.h"
-#include "mlir/Dialect/MemRef/IR/MemRef.h"
-#include "mlir/Dialect/Linalg/IR/Linalg.h"
-#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
+#include "mlir/Target/LLVMIR/Dialect/Builtin/BuiltinToLLVMIRTranslation.h"
+#include "mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h"
 
 #include "mlir/Support/LogicalResult.h"
 #include "llvm/Support/CommandLine.h"
@@ -29,6 +26,11 @@
 
 // CLI arguments for controlling compilation
 namespace {
+
+llvm::cl::opt<std::string> inputFile(
+    llvm::cl::Positional,
+    llvm::cl::desc("<ONNX model file>"),
+    llvm::cl::Required);
 
 llvm::cl::opt<std::string> emitTarget(
     "emit",
@@ -59,12 +61,14 @@ llvm::cl::opt<unsigned> optLevel(
 
 namespace tensor_compiler {
 
-int driver(const std::string &model_onnx) {
+int driver(int argc, char *argv[]) {
+    llvm::cl::ParseCommandLineOptions(argc, argv, "Tensor Compiler\n");
+
     onnx::ModelProto model;
-    std::fstream input(model_onnx, std::ios::in | std::ios::binary);
+    std::fstream input(inputFile, std::ios::in | std::ios::binary);
     if (!input.good())
         throw std::runtime_error(
-            "Failed to open ONNX model file: " + model_onnx + "\n");
+            "Failed to open ONNX model file: " + inputFile + "\n");
 
     if (!model.ParseFromIstream(&input))
         throw std::runtime_error("Failed to parse ONNX model.\n");
@@ -85,6 +89,12 @@ int driver(const std::string &model_onnx) {
     Graphviz_dumper::dump(compute_graph, gv);
 #endif
 
+    mlir::MLIRContext context;
+    mlir::DialectRegistry registry;
+    mlir::registerBuiltinDialectTranslation(registry);
+    mlir::registerLLVMDialectTranslation(registry);
+    context.appendDialectRegistry(registry);
+
     tensor_compiler::Codegen codegen{};
     auto mlirModule = codegen.generate(compute_graph);
     if (!mlirModule) {
@@ -97,11 +107,6 @@ int driver(const std::string &model_onnx) {
         llvm::outs() << "\n";
         return 0;
     }
-
-    mlir::MLIRContext context;
-    context.loadDialect<mlir::func::FuncDialect, mlir::arith::ArithDialect,
-                        mlir::memref::MemRefDialect, mlir::linalg::LinalgDialect,
-                        mlir::LLVM::LLVMDialect>();
 
     MLIRToLLVMLowering lowering(context);
     if (mlir::failed(lowering.lower(std::move(mlirModule)))) {
