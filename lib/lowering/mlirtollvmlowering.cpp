@@ -11,13 +11,12 @@
 #include "mlir/Dialect/SCF/Transforms/Passes.h"
 #include "mlir/Target/LLVMIR/Export.h"
 #include "mlir/Target/LLVMIR/Dialect/Builtin/BuiltinToLLVMIRTranslation.h"
-#include "mlir/Target/LLVMIR/Dialect/Func/FuncToLLVMIRTranslation.h"
-#include "mlir/Target/LLVMIR/Dialect/Arith/ArithToLLVMIRTranslation.h"
-#include "mlir/Target/LLVMIR/Dialect/MemRef/MemRefToLLVMIRTranslation.h"
 #include "mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h"
+#include "mlir/Target/LLVMIR/Dialect/All.h"
 
 using namespace mlir;
-using namespace tensor_compiler;
+
+namespace tensor_compiler {
 
 LogicalResult MLIRToLLVMLowering::lower(OwningOpRef<ModuleOp> &&mlirModule) {
     if (!mlirModule) {
@@ -63,10 +62,7 @@ std::unique_ptr<llvm::Module> MLIRToLLVMLowering::MLIRToLLVMLowering::exportToLL
     }
 
     mlir::DialectRegistry registry;
-    mlir::registerBuiltinDialectTranslation(registry);
-    mlir::registerFuncDialectTranslation(registry);
-    mlir::registerArithDialectTranslation(registry);
-    mlir::registerMemRefDialectTranslation(registry);
+    mlir::registerBuiltinDialectTranslation(registry); 
     mlir::registerLLVMDialectTranslation(registry);
 
     context_.appendDialectRegistry(registry);
@@ -87,3 +83,6 @@ std::unique_ptr<llvm::Module> MLIRToLLVMLowering::MLIRToLLVMLowering::exportToLL
 
     return llvmModule;
 }
+
+
+} // namespace tensor_compiler

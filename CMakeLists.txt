@@ -108,10 +108,8 @@ target_link_libraries(${PROJECT_NAME}
         MLIRConvertToLLVMPass
         MLIRLLVMDialect
         MLIRTargetLLVMIRExport
-        MLIRFuncToLLVMIRTranslation
-        MLIRArithToLLVMIRTranslation
-        MLIRMemRefToLLVMIRTranslation
         MLIRBuiltinToLLVMIRTranslation
+        MLIRLLVMToLLVMIRTranslation
 
         LLVMCore
         LLVMTarget
