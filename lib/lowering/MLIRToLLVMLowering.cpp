@@ -96,6 +96,8 @@ std::unique_ptr<llvm::Module> MLIRToLLVMLowering::MLIRToLLVMLowering::exportToLL
         return nullptr;
     }
 
+    mlirModule_->print(llvm::errs());
+
     llvm::LLVMContext llvmCtx;
     auto llvmModule = translateModuleToLLVMIR(*mlirModule_, llvmCtx, "tensor_network");
 

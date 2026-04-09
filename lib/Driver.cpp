@@ -105,6 +105,8 @@ int driver(int argc, char *argv[]) {
     registry.insert<mlir::bufferization::BufferizationDialect>();
     context.appendDialectRegistry(registry);
     context.loadAllAvailableDialects();
+    mlir::registerBuiltinDialectTranslation(context);
+    mlir::registerLLVMDialectTranslation(context);
 
     MLIRToLLVMLowering lowering(context);
 
