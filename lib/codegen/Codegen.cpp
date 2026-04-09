@@ -1,7 +1,7 @@
 #include <unordered_map>
 #include <vector>
 #include <string>
-#include "codegen/codegen.h"
+#include "codegen/Codegen.h"
 
 namespace tensor_compiler {
 
@@ -44,22 +44,16 @@ void checkBinaryNodeShape(const Node &node, const char *opName) {
 
 } // namespace
 
-Codegen::Codegen() {
-    registry_.insert<mlir::func::FuncDialect, mlir::arith::ArithDialect,
-                     mlir::tensor::TensorDialect>();
+Codegen::Codegen(mlir::MLIRContext &context) : context_(context) {}
 
-    context_ = std::make_unique<mlir::MLIRContext>(registry_);
-    context_->loadAllAvailableDialects();
-}
-
-mlir::MLIRContext &Codegen::getContext() noexcept { return *context_; }
+mlir::MLIRContext &Codegen::getContext() noexcept { return context_; }
 
 const mlir::MLIRContext &Codegen::getContext() const noexcept {
-    return *context_;
+    return context_;
 }
 
 mlir::OwningOpRef<mlir::ModuleOp> Codegen::generate(const Graph &graph) {
-    mlir::OpBuilder builder(context_.get());
+    mlir::OpBuilder builder(&context_);
     mlir::Location loc = builder.getUnknownLoc();
     mlir::ModuleOp module = mlir::ModuleOp::create(loc);
 
@@ -90,16 +84,16 @@ mlir::OwningOpRef<mlir::ModuleOp> Codegen::generate(const Graph &graph) {
 mlir::Type Codegen::convertElementType(int onnx_type) const {
     switch (onnx_type) {
     case onnx::TensorProto_DataType_FLOAT:
-        return mlir::Float32Type::get(context_.get());
+        return mlir::Float32Type::get(&context_);
 
     case onnx::TensorProto_DataType_DOUBLE:
-        return mlir::Float64Type::get(context_.get());
+        return mlir::Float64Type::get(&context_);
 
     case onnx::TensorProto_DataType_INT64:
-        return mlir::IntegerType::get(context_.get(), 64);
+        return mlir::IntegerType::get(&context_, 64);
 
     case onnx::TensorProto_DataType_INT32:
-        return mlir::IntegerType::get(context_.get(), 32);
+        return mlir::IntegerType::get(&context_, 32);
 
     default:
         throw std::runtime_error("unsupported ONNX tensor element type");

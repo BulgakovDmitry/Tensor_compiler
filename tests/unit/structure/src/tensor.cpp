@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "tensor.h"
+#include "Tensor.h"
 
 using namespace tensor_compiler;
 

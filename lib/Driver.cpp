@@ -1,11 +1,11 @@
-#include "driver.h"
-#include "codegen/codegen.h"
-#include "graph_dump/dump_path_gen.h"
-#include "graph_dump/graphviz_dumper.h"
-#include "lowering/mlirtollvmlowering.h"
+#include "Driver.h"
+#include "codegen/Codegen.h"
+#include "graph_dump/DumpPathGen.h"
+#include "graph_dump/GraphvizDumper.h"
+#include "lowering/MLIRToLLVMLowering.h"
 #include "lowering/LLVMToASMLowering.h"
 #include "onnx.pb.h"
-#include "structure/graph.h"
+#include "structure/Graph.h"
 #include <cstring>
 #include <fstream>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
@@ -14,15 +14,16 @@
 
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/IR/OwningOpRef.h"
-#include "llvm/IR/Module.h"
-
-#include "mlir/Target/LLVMIR/Dialect/Builtin/BuiltinToLLVMIRTranslation.h"
-#include "mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h"
-
 #include "mlir/Support/LogicalResult.h"
+#include "llvm/IR/Module.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/raw_ostream.h"
+
+#include "mlir/Dialect/Bufferization/IR/Bufferization.h"
+#include "mlir/InitAllDialects.h"
+#include "mlir/Target/LLVMIR/Dialect/Builtin/BuiltinToLLVMIRTranslation.h"
+#include "mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h"
 
 // CLI arguments for controlling compilation
 namespace {
@@ -90,12 +91,24 @@ int driver(int argc, char *argv[]) {
 #endif
 
     mlir::MLIRContext context;
-    mlir::DialectRegistry registry;
-    mlir::registerBuiltinDialectTranslation(registry);
-    mlir::registerLLVMDialectTranslation(registry);
-    context.appendDialectRegistry(registry);
 
-    tensor_compiler::Codegen codegen{};
+    mlir::DialectRegistry registry;
+    registry.insert<mlir::func::FuncDialect>();
+    registry.insert<mlir::arith::ArithDialect>();
+    registry.insert<mlir::tensor::TensorDialect>();
+    registry.insert<mlir::linalg::LinalgDialect>();
+    registry.insert<mlir::scf::SCFDialect>();
+    registry.insert<mlir::memref::MemRefDialect>();
+    registry.insert<mlir::math::MathDialect>();
+    registry.insert<mlir::cf::ControlFlowDialect>();
+    registry.insert<mlir::LLVM::LLVMDialect>();
+    registry.insert<mlir::bufferization::BufferizationDialect>();
+    context.appendDialectRegistry(registry);
+    context.loadAllAvailableDialects();
+
+    MLIRToLLVMLowering lowering(context);
+
+    tensor_compiler::Codegen codegen{context};
     auto mlirModule = codegen.generate(compute_graph);
     if (!mlirModule) {
         llvm::errs() << "Error: Codegen returned null module\n";
@@ -108,7 +121,6 @@ int driver(int argc, char *argv[]) {
         return 0;
     }
 
-    MLIRToLLVMLowering lowering(context);
     if (mlir::failed(lowering.lower(std::move(mlirModule)))) {
         llvm::errs() << "Error: MLIR to LLVM lowering failed\n";
         return 1;

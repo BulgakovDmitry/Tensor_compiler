@@ -1,5 +1,5 @@
-#include "structure/graph.h"
-#include "handlers.h"
+#include "structure/Graph.h"
+#include "Handlers.h"
 
 namespace tensor_compiler {
 

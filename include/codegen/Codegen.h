@@ -13,17 +13,17 @@
 #include "mlir/IR/Location.h"
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/IR/OwningOpRef.h"
-#include "structure/graph.h"
+#include "structure/Graph.h"
 
 namespace tensor_compiler {
 
 class Codegen {
 private:
   mlir::DialectRegistry registry_;
-  std::unique_ptr<mlir::MLIRContext> context_;
+  mlir::MLIRContext &context_;
 
 public:
-  Codegen();
+  explicit Codegen(mlir::MLIRContext &context);
 
   mlir::OwningOpRef<mlir::ModuleOp> generate(const Graph &graph);
 

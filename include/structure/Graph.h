@@ -1,8 +1,8 @@
 #ifndef INCLUDE_GRAPH_H
 #define INCLUDE_GRAPH_H
 
-#include "node.h"
-#include "tensor.h"
+#include "Node.h"
+#include "Tensor.h"
 #include <string>
 #include <unordered_map>
 #include <vector>

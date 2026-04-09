@@ -1,9 +1,9 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "structure/graph.h"
-#include "structure/node.h"
-#include "structure/tensor.h"
+#include "structure/Graph.h"
+#include "structure/Node.h"
+#include "structure/Tensor.h"
 #include <iostream>
 #include <ostream>
 #include <string>

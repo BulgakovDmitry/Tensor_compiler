@@ -1,25 +1,42 @@
-#include "lowering/mlirtollvmlowering.h"
+#include "lowering/MLIRToLLVMLowering.h"
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/Pass/PassManager.h"
 #include "mlir/Support/LogicalResult.h"
 #include "llvm/Support/raw_ostream.h"
+
 #include "mlir/Conversion/Passes.h"
 #include "mlir/Dialect/Bufferization/Transforms/Passes.h"
 #include "mlir/Dialect/Bufferization/Transforms/OneShotAnalysis.h"
 #include "mlir/Conversion/MemRefToLLVM/MemRefToLLVM.h"
-#include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Transforms/Passes.h"
+
 #include "mlir/Dialect/Linalg/Passes.h"
 #include "mlir/Dialect/SCF/Transforms/Passes.h"
+#include "mlir/Dialect/Arith/Transforms/Passes.h"
+#include "mlir/Dialect/Tensor/Transforms/Passes.h"
+#include "mlir/Dialect/Func/Transforms/Passes.h"
 #include "mlir/Target/LLVMIR/Export.h"
 #include "mlir/Target/LLVMIR/Dialect/All.h"
+
+#include "mlir/Dialect/Bufferization/IR/Bufferization.h"
+#include "mlir/Dialect/MemRef/IR/MemRef.h"
+#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Func/IR/FuncOps.h"
+#include "mlir/Dialect/Tensor/IR/Tensor.h"
+#include "mlir/Dialect/Linalg/IR/Linalg.h"
+#include "mlir/Dialect/SCF/IR/SCF.h"
+#include "mlir/Dialect/Math/IR/Math.h"
+#include "mlir/Dialect/ControlFlow/IR/ControlFlow.h"
+#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
 
 using namespace mlir;
 
 namespace tensor_compiler {
 
-MLIRToLLVMLowering::MLIRToLLVMLowering(mlir::MLIRContext &context) : context_{context} {}
+MLIRToLLVMLowering::MLIRToLLVMLowering(mlir::MLIRContext &context)
+    : context_{context}
+    , mlirModule_(nullptr) {}
 
 LogicalResult MLIRToLLVMLowering::lower(OwningOpRef<ModuleOp> &&mlirModule) {
     if (!mlirModule) {
@@ -28,36 +45,36 @@ LogicalResult MLIRToLLVMLowering::lower(OwningOpRef<ModuleOp> &&mlirModule) {
     }
 
     mlirModule_ = std::move(mlirModule);
+
     PassManager pm(&context_);
 
     pm.addPass(createCanonicalizerPass());
     pm.addPass(createCSEPass());
 
     pm.addNestedPass<func::FuncOp>(createConvertElementwiseToLinalgPass());
-    pm.addPass(createPrintOpStatsPass());
+
+    pm.addPass(arith::createArithBufferizePass());
+    pm.addPass(func::createFuncBufferizePass());
+    pm.addNestedPass<func::FuncOp>(createLinalgBufferizePass());
+    pm.addNestedPass<func::FuncOp>(tensor::createTensorBufferizePass());
 
     bufferization::OneShotBufferizationOptions bufferizationOptions;
     bufferizationOptions.bufferizeFunctionBoundaries = true;
     bufferizationOptions.setFunctionBoundaryTypeConversion(
         bufferization::LayoutMapOption::IdentityLayoutMap);
     pm.addPass(bufferization::createOneShotBufferizePass(bufferizationOptions));
-    pm.addPass(createPrintOpStatsPass());
 
     pm.addPass(bufferization::createBufferResultsToOutParamsPass());
-    pm.addPass(createPrintOpStatsPass());
 
     pm.addNestedPass<func::FuncOp>(createConvertLinalgToLoopsPass());
     pm.addPass(createConvertSCFToCFPass());
-    pm.addPass(createPrintOpStatsPass());
 
     pm.addPass(createCanonicalizerPass());
     pm.addPass(createCSEPass());
 
     pm.addPass(createConvertMathToLLVMPass());
     pm.addPass(createArithToLLVMConversionPass());
-
     pm.addPass(createFinalizeMemRefToLLVMConversionPass());
-
     pm.addPass(createConvertControlFlowToLLVMPass());
     pm.addPass(createConvertFuncToLLVMPass());
 
@@ -65,9 +82,11 @@ LogicalResult MLIRToLLVMLowering::lower(OwningOpRef<ModuleOp> &&mlirModule) {
     pm.addPass(createCSEPass());
 
     if (failed(pm.run(*mlirModule_))) {
-        llvm::errs() << "Lowering to LLVM dialect failed!\n";
+        llvm::errs() << "=== FAILED: pm.run ===\n";
+        mlirModule_->print(llvm::errs());
         return failure();
     }
+
     return success();
 }
 
