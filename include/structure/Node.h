@@ -2,8 +2,8 @@
 #define INCLUDE_NODE_H
 
 #include "Attribute.h"
-#include "onnx.pb.h"
 #include "Tensor.h"
+#include "onnx.pb.h"
 #include <cstddef>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <string>
