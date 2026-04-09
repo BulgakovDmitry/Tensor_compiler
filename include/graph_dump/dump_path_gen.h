@@ -22,9 +22,8 @@ inline std::filesystem::path defaultDumpDir() {
   return std::filesystem::temp_directory_path() / "dump";
 }
 
-inline Dump_paths
-makeDumpPaths(std::string_view basename = "dump",
-                std::filesystem::path base = defaultDumpDir()) {
+inline Dump_paths makeDumpPaths(std::string_view basename = "dump",
+                                std::filesystem::path base = defaultDumpDir()) {
   std::filesystem::create_directories(base);
   std::string s(basename);
   return {base / (s + ".gv"), base / (s + ".svg")};

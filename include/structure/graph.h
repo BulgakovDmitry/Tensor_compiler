@@ -105,7 +105,7 @@ private:
   /// @param node The ONNX NodeProto containing the tensor reference.
   /// @param name The tensor name to check/register.
   void handleNodeIRTensor(Node &new_node, const onnx::NodeProto &node,
-                             const std::string &name);
+                          const std::string &name);
 
   /// @brief Convert an ONNX NodeProto to a Node object.
   /// @param node_idx Reference to a counter for assigning node indices.

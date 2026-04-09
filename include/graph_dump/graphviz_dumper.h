@@ -185,8 +185,9 @@ private:
                "</b></td></tr>";
 
       // String with data type
-      label += "<tr><td align=\"left\">type: " +
-               tensorTypeToString(tensor.type()) + "</td></tr>";
+      label +=
+          "<tr><td align=\"left\">type: " + tensorTypeToString(tensor.type()) +
+          "</td></tr>";
 
       // String with dimension
       label += "<tr><td align=\"left\">shape: [";

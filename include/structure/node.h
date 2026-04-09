@@ -97,8 +97,7 @@ public:
   /// @brief Set an attribute value.
   /// @param name Attribute name.
   /// @param value Attribute value (variant type).
-  void setAttribute(const std::string &name,
-                     const Attribute::AttrValue &value);
+  void setAttribute(const std::string &name, const Attribute::AttrValue &value);
 
   /// @brief Check if an attribute exists.
   /// @param name Attribute name.
