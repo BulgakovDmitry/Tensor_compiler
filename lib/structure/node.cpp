@@ -6,58 +6,58 @@ namespace tensor_compiler {
 // @section Implementations
 // Implementation of node methods.
 // ----------------------------------------------------------------------------
-void Node::set_name(const std::string &name) { name_ = name; }
+void Node::setName(const std::string &name) { name_ = name; }
 
-Node::node_id Node::get_id() const { return id_; }
-const std::string &Node::get_opcode() const { return opcode_; }
-const std::string &Node::get_name() const { return name_; }
-const std::vector<std::string> &Node::get_inputs() const {
+Node::node_id Node::id() const { return id_; }
+const std::string &Node::opcode() const { return opcode_; }
+const std::string &Node::name() const { return name_; }
+const std::vector<std::string> &Node::inputs() const {
     return inputs_;
 }
-const std::vector<std::string> &Node::get_outputs() const {
+const std::vector<std::string> &Node::outputs() const {
     return outputs_;
 }
-const Attributes &Node::get_attributes() const { return attributes_; }
+const Attributes &Node::attributes() const { return attributes_; }
 
-void Node::set_inputs(const std::vector<std::string> &inputs) {
+void Node::setInputs(const std::vector<std::string> &inputs) {
     inputs_ = inputs;
 }
 
-void Node::set_inputs(const name_t &inputs) {
+void Node::setInputs(const name_t &inputs) {
     inputs_.clear();
     inputs_.reserve(static_cast<std::size_t>(inputs.size()));
     for (const auto &s : inputs)
         inputs_.push_back(s);
 }
 
-void Node::set_outputs(const std::vector<std::string> &outputs) {
+void Node::setOutputs(const std::vector<std::string> &outputs) {
     outputs_ = outputs;
 }
 
-void Node::set_outputs(const name_t &outputs) {
+void Node::setOutputs(const name_t &outputs) {
     outputs_.clear();
     outputs_.reserve(static_cast<std::size_t>(outputs.size()));
     for (const auto &s : outputs)
         outputs_.push_back(s);
 }
 
-void Node::parse_attributes(const onnx::NodeProto &node) {
+void Node::parseAttributes(const onnx::NodeProto &node) {
     for (const auto &attr : node.attribute()) {
         const std::string &name = attr.name();
 
         switch (attr.type()) {
         case onnx::AttributeProto_AttributeType_FLOAT: {
-            set_attribute(name, attr.f());
+            setAttribute(name, attr.f());
             break;
         }
 
         case onnx::AttributeProto_AttributeType_INT: {
-            set_attribute(name, static_cast<int64_t>(attr.i()));
+            setAttribute(name, static_cast<int64_t>(attr.i()));
             break;
         }
 
         case onnx::AttributeProto_AttributeType_STRING: {
-            set_attribute(name, attr.s());
+            setAttribute(name, attr.s());
             break;
         }
 
@@ -66,7 +66,7 @@ void Node::parse_attributes(const onnx::NodeProto &node) {
             v.reserve(attr.floats_size());
             for (int i = 0; i < attr.floats_size(); ++i)
                 v.push_back(attr.floats(i));
-            set_attribute(name, v);
+            setAttribute(name, v);
             break;
         }
 
@@ -75,7 +75,7 @@ void Node::parse_attributes(const onnx::NodeProto &node) {
             v.reserve(attr.ints_size());
             for (int i = 0; i < attr.ints_size(); ++i)
                 v.push_back(static_cast<int64_t>(attr.ints(i)));
-            set_attribute(name, v);
+            setAttribute(name, v);
             break;
         }
 
@@ -85,19 +85,19 @@ void Node::parse_attributes(const onnx::NodeProto &node) {
     }
 }
 
-void Node::add_input(const std::string &input) {
+void Node::addInput(const std::string &input) {
     inputs_.push_back(input);
 }
-void Node::add_output(const std::string &output) {
+void Node::addOutput(const std::string &output) {
     outputs_.push_back(output);
 }
 
-void Node::set_attribute(const std::string &name,
+void Node::setAttribute(const std::string &name,
                                 const Attribute::AttrValue &value) {
     attributes_[name] = Attribute{name, value};
 }
 
-bool Node::has_attribute(const std::string &name) const {
+bool Node::hasAttribute(const std::string &name) const {
     return attributes_.find(name) != attributes_.end();
 }
 

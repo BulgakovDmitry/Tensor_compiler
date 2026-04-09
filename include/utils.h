@@ -10,7 +10,7 @@
 
 namespace tensor_compiler {
 
-struct Edge_hash {
+struct EdgeHash {
   std::size_t
   operator()(const std::pair<const Node *, const Node *> &e) const noexcept {
     auto h1 = std::hash<const Node *>{}(e.first);
@@ -19,15 +19,15 @@ struct Edge_hash {
   }
 };
 
-inline void dump_tensors(const Graph &graph, std::ostream &os) {
-  os << "Graph name: " << graph.get_name() << "\n";
+inline void dumpTensors(const Graph &graph, std::ostream &os) {
+  os << "Graph name: " << graph.name() << "\n";
   os << "Tensors:\n";
-  for (const auto &[name, tensor] : graph.get_tensors()) {
-    os << "  " << name << ": type=" << tensor.get_type()
-       << ", kind=" << static_cast<int>(tensor.get_kind()) << ", shape=[";
-    for (size_t i = 0; i < tensor.get_shape().size(); ++i) {
-      os << tensor.get_shape()[i];
-      if (i < tensor.get_shape().size() - 1) {
+  for (const auto &[name, tensor] : graph.tensors()) {
+    os << "  " << name << ": type=" << tensor.type()
+       << ", kind=" << static_cast<int>(tensor.kind()) << ", shape=[";
+    for (size_t i = 0; i < tensor.shape().size(); ++i) {
+      os << tensor.shape()[i];
+      if (i < tensor.shape().size() - 1) {
         os << ", ";
       }
     }
@@ -35,24 +35,24 @@ inline void dump_tensors(const Graph &graph, std::ostream &os) {
   }
 }
 
-inline void dump_nodes(const Graph &graph, std::ostream &os) {
+inline void dumpNodes(const Graph &graph, std::ostream &os) {
   os << "Nodes:\n";
-  for (const auto &node : graph.get_nodes()) {
-    os << "  Node name: " << node.get_name() << "\n";
-    os << "    Opcode: " << node.get_opcode() << "\n";
+  for (const auto &node : graph.nodes()) {
+    os << "  Node name: " << node.name() << "\n";
+    os << "    Opcode: " << node.opcode() << "\n";
     os << "    Inputs: [";
-    for (size_t i = 0; i < node.get_inputs().size(); ++i) {
-      os << node.get_inputs()[i];
-      if (i < node.get_inputs().size() - 1) {
+    for (size_t i = 0; i < node.inputs().size(); ++i) {
+      os << node.inputs()[i];
+      if (i < node.inputs().size() - 1) {
         os << ", ";
       }
     }
     os << "]\n";
 
     os << "    Outputs: [";
-    for (size_t i = 0; i < node.get_outputs().size(); ++i) {
-      os << node.get_outputs()[i];
-      if (i < node.get_outputs().size() - 1) {
+    for (size_t i = 0; i < node.outputs().size(); ++i) {
+      os << node.outputs()[i];
+      if (i < node.outputs().size() - 1) {
         os << ", ";
       }
     }

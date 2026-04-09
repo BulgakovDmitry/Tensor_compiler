@@ -1,8 +1,6 @@
 #include "driver.h"
 #include <iostream>
 
-#include "llvm/Support/CommandLine.h"
-
 int main(int argc, char *argv[]) {
     try {
         tensor_compiler::driver(argc, argv);

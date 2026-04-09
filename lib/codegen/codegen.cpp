@@ -21,22 +21,22 @@ mlir::Value getBoundValue(
 }
 
 void checkUnaryNodeShape(const Node &node, const char *opName) {
-    if (node.get_inputs().size() != 1) {
+    if (node.inputs().size() != 1) {
         throw std::runtime_error(std::string(opName) +
                                  " node must have exactly 1 input");
     }
-    if (node.get_outputs().size() != 1) {
+    if (node.outputs().size() != 1) {
         throw std::runtime_error(std::string(opName) +
                                  " node must have exactly 1 output");
     }
 }
 
 void checkBinaryNodeShape(const Node &node, const char *opName) {
-    if (node.get_inputs().size() != 2) {
+    if (node.inputs().size() != 2) {
         throw std::runtime_error(std::string(opName) +
                                  " node must have exactly 2 inputs");
     }
-    if (node.get_outputs().size() != 1) {
+    if (node.outputs().size() != 1) {
         throw std::runtime_error(std::string(opName) +
                                  " node must have exactly 1 output");
     }
@@ -63,7 +63,7 @@ mlir::OwningOpRef<mlir::ModuleOp> Codegen::generate(const Graph &graph) {
     mlir::Location loc = builder.getUnknownLoc();
     mlir::ModuleOp module = mlir::ModuleOp::create(loc);
 
-    std::string funcName = graph.get_name().empty() ? "main" : graph.get_name();
+    std::string funcName = graph.name().empty() ? "main" : graph.name();
 
     std::vector<mlir::Type> inputTypes  = buildInputTypes(graph);
     std::vector<mlir::Type> resultTypes = buildResultTypes(graph);
@@ -73,7 +73,7 @@ mlir::OwningOpRef<mlir::ModuleOp> Codegen::generate(const Graph &graph) {
 
     mlir::Block *entryBlock = func.addEntryBlock();
     builder.setInsertionPointToStart(entryBlock);
-  
+
     std::unordered_map<std::string, mlir::Value> values;
 
     bindFunctionInputs(graph, entryBlock, values);
@@ -108,17 +108,17 @@ mlir::Type Codegen::convertElementType(int onnx_type) const {
 
 mlir::RankedTensorType
 Codegen::convertTensorType(const Tensor &tensor) const {
-    const auto &shape = tensor.get_shape();
-    auto elem_type = convertElementType(tensor.get_type());
+    const auto &shape = tensor.shape();
+    auto elem_type = convertElementType(tensor.type());
     return mlir::RankedTensorType::get(shape, elem_type);
 }
 
 std::vector<mlir::Type> Codegen::buildInputTypes(const Graph &graph) const {
     std::vector<mlir::Type> inputTypes;
-    inputTypes.reserve(graph.get_inputs().size());
+    inputTypes.reserve(graph.inputs().size());
 
-    for (const auto &inputName : graph.get_inputs()) {
-        const Tensor *tensor = graph.get_tensor(inputName);
+    for (const auto &inputName : graph.inputs()) {
+        const Tensor *tensor = graph.tensor(inputName);
         if (!tensor) {
             throw std::runtime_error("graph input tensor not found: " + inputName);
         }
@@ -130,10 +130,10 @@ std::vector<mlir::Type> Codegen::buildInputTypes(const Graph &graph) const {
 
 std::vector<mlir::Type> Codegen::buildResultTypes(const Graph &graph) const {
     std::vector<mlir::Type> resultTypes;
-    resultTypes.reserve(graph.get_outputs().size());
+    resultTypes.reserve(graph.outputs().size());
 
-    for (const auto &outputName : graph.get_outputs()) {
-        const Tensor *tensor = graph.get_tensor(outputName);
+    for (const auto &outputName : graph.outputs()) {
+        const Tensor *tensor = graph.tensor(outputName);
         if (!tensor) {
             throw std::runtime_error("graph output tensor not found: " + outputName);
         }
@@ -148,8 +148,8 @@ void Codegen::bindFunctionInputs(
     mlir::Block *entry_block,
     std::unordered_map<std::string, mlir::Value> &values) const {
 
-    for (size_t i = 0; i < graph.get_inputs().size(); ++i) {
-        values[graph.get_inputs()[i]] = entry_block->getArgument(i);
+    for (size_t i = 0; i < graph.inputs().size(); ++i) {
+        values[graph.inputs()[i]] = entry_block->getArgument(i);
     }
 }
 
@@ -158,9 +158,9 @@ std::vector<mlir::Value> Codegen::collectReturnValues(
     const std::unordered_map<std::string, mlir::Value> &values) const {
 
     std::vector<mlir::Value> returnValues;
-    returnValues.reserve(graph.get_outputs().size());
+    returnValues.reserve(graph.outputs().size());
 
-    for (const auto &outputName : graph.get_outputs()) {
+    for (const auto &outputName : graph.outputs()) {
         auto it = values.find(outputName);
         if (it == values.end()) {
             throw std::runtime_error("no MLIR value bound for output: " + outputName);
@@ -177,7 +177,7 @@ void Codegen::genNodes(
     const Graph &graph,
     std::unordered_map<std::string, mlir::Value> &values) const {
 
-    for (const auto &node : graph.get_nodes()) {
+    for (const auto &node : graph.nodes()) {
         genNode(builder, loc, node, values);
     }
 }
@@ -188,13 +188,13 @@ void Codegen::genNode(
     const Node &node,
     std::unordered_map<std::string, mlir::Value> &values) const {
 
-    const std::string &opcode = node.get_opcode();
+    const std::string &opcode = node.opcode();
 
     if (opcode == "Mul") {
         genMulNode(builder, loc, node, values);
         return;
     }
-    
+
     if (opcode == "Add") {
         genAddNode(builder, loc, node, values);
         return;
@@ -231,9 +231,9 @@ void Codegen::genMulNode(
 
     checkBinaryNodeShape(node, "Mul");
 
-    const std::string &lhsName = node.get_inputs()[0];
-    const std::string &rhsName = node.get_inputs()[1];
-    const std::string &outName = node.get_outputs()[0];
+    const std::string &lhsName = node.inputs()[0];
+    const std::string &rhsName = node.inputs()[1];
+    const std::string &outName = node.outputs()[0];
 
     mlir::Value lhs = getBoundValue(values, lhsName, "Mul");
     mlir::Value rhs = getBoundValue(values, rhsName, "Mul");
@@ -250,9 +250,9 @@ void Codegen::genAddNode(
 
     checkBinaryNodeShape(node, "Add");
 
-    const std::string &lhsName = node.get_inputs()[0];
-    const std::string &rhsName = node.get_inputs()[1];
-    const std::string &outName = node.get_outputs()[0];
+    const std::string &lhsName = node.inputs()[0];
+    const std::string &rhsName = node.inputs()[1];
+    const std::string &outName = node.outputs()[0];
 
     mlir::Value lhs = getBoundValue(values, lhsName, "Add");
     mlir::Value rhs = getBoundValue(values, rhsName, "Add");
@@ -268,13 +268,13 @@ mlir::Value Codegen::genConstantTensor(
 
     auto type = convertTensorType(tensor);
 
-    if (tensor.get_type() != onnx::TensorProto_DataType_FLOAT) {
+    if (tensor.type() != onnx::TensorProto_DataType_FLOAT) {
         throw std::runtime_error("only FLOAT constant tensors are supported for now");
     }
 
-    const auto &raw = tensor.get_data(); 
+    const auto &raw = tensor.data();
     size_t elementCount = 1;
-    for (int64_t d : tensor.get_shape()) {
+    for (int64_t d : tensor.shape()) {
         elementCount *= static_cast<size_t>(d);
     }
 
@@ -296,8 +296,8 @@ void Codegen::genConstants(
     const Graph &graph,
     std::unordered_map<std::string, mlir::Value> &values) const {
 
-    for (const auto &[name, tensor] : graph.get_tensors()) { 
-        if (!tensor.is_constant()) {
+    for (const auto &[name, tensor] : graph.tensors()) {
+        if (!tensor.isConstant()) {
             continue;
         }
 
@@ -316,8 +316,8 @@ void Codegen::genIdentityNode(
 
     checkUnaryNodeShape(node, "Identity");
 
-    const std::string &inName = node.get_inputs()[0];
-    const std::string &outName = node.get_outputs()[0];
+    const std::string &inName = node.inputs()[0];
+    const std::string &outName = node.outputs()[0];
 
     values[outName] = getBoundValue(values, inName, "Identity");
 }
@@ -330,9 +330,9 @@ void Codegen::genSubNode(
 
     checkBinaryNodeShape(node, "Sub");
 
-    const std::string &lhsName = node.get_inputs()[0];
-    const std::string &rhsName = node.get_inputs()[1];
-    const std::string &outName = node.get_outputs()[0];
+    const std::string &lhsName = node.inputs()[0];
+    const std::string &rhsName = node.inputs()[1];
+    const std::string &outName = node.outputs()[0];
 
     mlir::Value lhs = getBoundValue(values, lhsName, "Sub");
     mlir::Value rhs = getBoundValue(values, rhsName, "Sub");
@@ -349,9 +349,9 @@ void Codegen::genDivNode(
 
     checkBinaryNodeShape(node, "Div");
 
-    const std::string &lhsName = node.get_inputs()[0];
-    const std::string &rhsName = node.get_inputs()[1];
-    const std::string &outName = node.get_outputs()[0];
+    const std::string &lhsName = node.inputs()[0];
+    const std::string &rhsName = node.inputs()[1];
+    const std::string &outName = node.outputs()[0];
 
     mlir::Value lhs = getBoundValue(values, lhsName, "Div");
     mlir::Value rhs = getBoundValue(values, rhsName, "Div");
@@ -368,8 +368,8 @@ void Codegen::genReluNode(
 
     checkUnaryNodeShape(node, "Relu");
 
-    const std::string &inName = node.get_inputs()[0];
-    const std::string &outName = node.get_outputs()[0];
+    const std::string &inName = node.inputs()[0];
+    const std::string &outName = node.outputs()[0];
 
     mlir::Value input = getBoundValue(values, inName, "Relu");
     auto type = mlir::dyn_cast<mlir::RankedTensorType>(input.getType());

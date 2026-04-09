@@ -10,7 +10,7 @@ struct Dump_paths {
   std::filesystem::path svg;
 };
 
-inline std::filesystem::path default_dump_dir() {
+inline std::filesystem::path defaultDumpDir() {
   if (const char *p = std::getenv("DUMP_DIR"); p && *p)
     return std::filesystem::path(p);
 
@@ -23,8 +23,8 @@ inline std::filesystem::path default_dump_dir() {
 }
 
 inline Dump_paths
-make_dump_paths(std::string_view basename = "dump",
-                std::filesystem::path base = default_dump_dir()) {
+makeDumpPaths(std::string_view basename = "dump",
+                std::filesystem::path base = defaultDumpDir()) {
   std::filesystem::create_directories(base);
   std::string s(basename);
   return {base / (s + ".gv"), base / (s + ".svg")};

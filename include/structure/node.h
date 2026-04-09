@@ -45,69 +45,69 @@ public:
 
   /// @brief Set the node's name.
   /// @param name New name.
-  void set_name(const std::string &name);
+  void setName(const std::string &name);
 
   /// @brief Get the node's unique identifier.
   /// @return node_id.
-  node_id get_id() const;
+  node_id id() const;
 
   /// @brief Get the operator type.
   /// @return const reference to opcode string.
-  const std::string &get_opcode() const;
+  const std::string &opcode() const;
 
   /// @brief Get the node's name.
   /// @return const reference to name string.
-  const std::string &get_name() const;
+  const std::string &name() const;
 
   /// @brief Get the list of input tensor names.
   /// @return const reference to vector of strings.
-  const std::vector<std::string> &get_inputs() const;
+  const std::vector<std::string> &inputs() const;
 
   /// @brief Get the list of output tensor names.
   /// @return const reference to vector of strings.
-  const std::vector<std::string> &get_outputs() const;
+  const std::vector<std::string> &outputs() const;
 
   /// @brief Get the node's attributes map.
   /// @return const reference to Attributes map.
-  const Attributes &get_attributes() const;
+  const Attributes &attributes() const;
 
   /// @brief Set the inputs from a vector of strings.
   /// @param inputs Vector of input names.
-  void set_inputs(const std::vector<std::string> &inputs);
+  void setInputs(const std::vector<std::string> &inputs);
 
   /// @brief Set the inputs from a protobuf repeated field.
   /// @param inputs Protobuf repeated field of strings.
-  void set_inputs(const name_t &inputs);
+  void setInputs(const name_t &inputs);
 
   /// @brief Set the outputs from a vector of strings.
   /// @param outputs Vector of output names.
-  void set_outputs(const std::vector<std::string> &outputs);
+  void setOutputs(const std::vector<std::string> &outputs);
 
   /// @brief Set the outputs from a protobuf repeated field.
   /// @param outputs Protobuf repeated field of strings.
-  void set_outputs(const name_t &outputs);
+  void setOutputs(const name_t &outputs);
 
   /// @brief Parse attributes from an ONNX NodeProto.
   ///
   /// Reads the attribute field of the protobuf and stores them as Attribute
   /// objects. Supported types: FLOAT, INT, STRING, FLOATS, INTS.
   /// @param node ONNX NodeProto message.
-  void parse_attributes(const onnx::NodeProto &node);
+  void parseAttributes(const onnx::NodeProto &node);
 
   /// @brief Set an attribute value.
   /// @param name Attribute name.
   /// @param value Attribute value (variant type).
-  void set_attribute(const std::string &name,
+  void setAttribute(const std::string &name,
                      const Attribute::AttrValue &value);
 
   /// @brief Check if an attribute exists.
   /// @param name Attribute name.
   /// @return true if present, false otherwise.
-  bool has_attribute(const std::string &name) const;
+  bool hasAttribute(const std::string &name) const;
 
 private:
-  void add_input(const std::string &input);
-  void add_output(const std::string &output);
+  void addInput(const std::string &input);
+  void addOutput(const std::string &output);
 };
 
 } // namespace tensor_compiler

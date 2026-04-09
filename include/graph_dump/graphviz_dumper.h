@@ -12,7 +12,7 @@
 namespace tensor_compiler {
 
 // Helper function for escaping special characters in DOT
-static std::string escape_dot(const std::string &s) {
+static std::string escapeDot(const std::string &s) {
   std::string out;
   out.reserve(s.size());
   for (char c : s) {
@@ -25,7 +25,7 @@ static std::string escape_dot(const std::string &s) {
   return out;
 }
 
-static std::string escape_html(const std::string &s) {
+static std::string escapeHtml(const std::string &s) {
   std::string out;
   out.reserve(s.size());
   for (char c : s) {
@@ -47,7 +47,7 @@ static std::string escape_html(const std::string &s) {
   return out;
 }
 
-static std::string tensor_type_to_string(int type) {
+static std::string tensorTypeToString(int type) {
   switch (type) {
   case onnx::TensorProto_DataType_UNDEFINED:
     return "undefined";
@@ -88,7 +88,7 @@ static std::string tensor_type_to_string(int type) {
   }
 }
 
-class Graphviz_dumper {
+class GraphvizDumper {
 public:
   static void dump(const Graph &g, std::ostream &gv) {
     gv << "digraph G {\n"
@@ -99,74 +99,74 @@ public:
        << "    bgcolor=\"lemonchiffon\";\n\n";
 
     // 1. Output all tensors as nodes
-    dump_tensors(g, gv);
+    dumpTensors(g, gv);
     // 2. Output all operation nodes
-    dump_nodes(g, gv);
+    dumpNodes(g, gv);
     // 3. Creating edges: from tensors to operations (inputs) and from
     // operations to tensors (outputs)
-    add_edges(g, gv);
+    addEdges(g, gv);
     // 4. Select the inputs and outputs of the entire graph
-    add_inputs_outputs(g, gv);
+    addInputsOutputs(g, gv);
 
     gv << "}\n";
   }
 
 private:
-  static void add_inputs_outputs(const Graph &g, std::ostream &gv) {
+  static void addInputsOutputs(const Graph &g, std::ostream &gv) {
     gv << "    // Mark graph inputs and outputs\n";
-    for (const auto &in : g.get_inputs()) {
-      std::string tid = "tensor_" + escape_dot(in);
+    for (const auto &in : g.inputs()) {
+      std::string tid = "tensor_" + escapeDot(in);
       gv << "    " << tid << " [peripheries=2];\n"; // double frame for inputs
     }
-    for (const auto &out : g.get_outputs()) {
-      std::string tid = "tensor_" + escape_dot(out);
+    for (const auto &out : g.outputs()) {
+      std::string tid = "tensor_" + escapeDot(out);
       gv << "    " << tid << " [peripheries=2];\n"; // double frame for outputs
     }
   }
 
-  static void add_edges(const Graph &g, std::ostream &gv) {
-    for (const auto &node : g.get_nodes()) {
-      std::string node_id = "node_" + escape_dot(node.get_name());
+  static void addEdges(const Graph &g, std::ostream &gv) {
+    for (const auto &node : g.nodes()) {
+      std::string nodeId = "node_" + escapeDot(node.name());
 
       // Input tensors → node
-      for (const auto &input_name : node.get_inputs()) {
-        std::string tensor_id = "tensor_" + escape_dot(input_name);
-        gv << "    " << tensor_id << " -> " << node_id << ";\n";
+      for (const auto &inputName : node.inputs()) {
+        std::string tensorId = "tensor_" + escapeDot(inputName);
+        gv << "    " << tensorId << " -> " << nodeId << ";\n";
       }
 
       // Node → output tensors
-      for (const auto &output_name : node.get_outputs()) {
-        std::string tensor_id = "tensor_" + escape_dot(output_name);
-        gv << "    " << node_id << " -> " << tensor_id << ";\n";
+      for (const auto &outputName : node.outputs()) {
+        std::string tensorId = "tensor_" + escapeDot(outputName);
+        gv << "    " << nodeId << " -> " << tensorId << ";\n";
       }
     }
     gv << "\n";
   }
 
-  static void dump_tensors(const Graph &g, std::ostream &gv) {
-    for (const auto &[name, tensor] : g.get_tensors()) {
-      std::string tensor_id = "tensor_" + escape_dot(name);
-      std::string kind_str;
+  static void dumpTensors(const Graph &g, std::ostream &gv) {
+    for (const auto &[name, tensor] : g.tensors()) {
+      std::string tensorId = "tensor_" + escapeDot(name);
+      std::string kindStr;
       std::string bgcolor;
 
-      switch (tensor.get_kind()) {
+      switch (tensor.kind()) {
       case Tensor_kind::input: {
-        kind_str = "input";
+        kindStr = "input";
         bgcolor = "lightblue";
         break;
       }
       case Tensor_kind::output: {
-        kind_str = "output";
+        kindStr = "output";
         bgcolor = "lightgreen";
         break;
       }
       case Tensor_kind::constant: {
-        kind_str = "constant";
+        kindStr = "constant";
         bgcolor = "lightgrey";
         break;
       }
       case Tensor_kind::intermediate: {
-        kind_str = "intermediate";
+        kindStr = "intermediate";
         bgcolor = "pink";
         break;
       }
@@ -181,16 +181,16 @@ private:
                "cellpadding=\"4\">";
 
       // String with name
-      label += "<tr><td bgcolor=\"" + bgcolor + "\"><b>" + escape_html(name) +
+      label += "<tr><td bgcolor=\"" + bgcolor + "\"><b>" + escapeHtml(name) +
                "</b></td></tr>";
 
       // String with data type
       label += "<tr><td align=\"left\">type: " +
-               tensor_type_to_string(tensor.get_type()) + "</td></tr>";
+               tensorTypeToString(tensor.type()) + "</td></tr>";
 
       // String with dimension
       label += "<tr><td align=\"left\">shape: [";
-      const auto &shape = tensor.get_shape();
+      const auto &shape = tensor.shape();
       for (size_t i = 0; i < shape.size(); ++i) {
         if (i > 0)
           label += ",";
@@ -199,18 +199,18 @@ private:
       label += "]</td></tr>";
 
       // String with kind
-      label += "<tr><td align=\"left\">" + escape_html(kind_str) + "</td></tr>";
+      label += "<tr><td align=\"left\">" + escapeHtml(kindStr) + "</td></tr>";
 
       label += "</table>>";
 
-      gv << "    " << tensor_id << " [shape=plaintext, label=" << label
+      gv << "    " << tensorId << " [shape=plaintext, label=" << label
          << ", color=\"#252A34\", penwidth=2.5];\n";
     }
   }
 
-  static void dump_nodes(const Graph &g, std::ostream &gv) {
-    for (const auto &node : g.get_nodes()) {
-      std::string node_id = "node_" + escape_dot(node.get_name());
+  static void dumpNodes(const Graph &g, std::ostream &gv) {
+    for (const auto &node : g.nodes()) {
+      std::string nodeId = "node_" + escapeDot(node.name());
 
       std::string label = "<";
       label += "<table border=\"0\" cellborder=\"1\" cellspacing=\"0\" "
@@ -218,61 +218,61 @@ private:
 
       // String with opcode (bold)
       label += "<tr><td bgcolor=\"lightcoral\"><b>" +
-               escape_html(node.get_opcode()) + "</b></td></tr>";
+               escapeHtml(node.opcode()) + "</b></td></tr>";
 
       // String with node name
-      label += "<tr><td align=\"left\">name: " + escape_html(node.get_name()) +
+      label += "<tr><td align=\"left\">name: " + escapeHtml(node.name()) +
                "</td></tr>";
 
       // String with id
-      label += "<tr><td align=\"left\">id: " + std::to_string(node.get_id()) +
+      label += "<tr><td align=\"left\">id: " + std::to_string(node.id()) +
                "</td></tr>";
 
       // Add attributes if any.
-      const auto &attrs = node.get_attributes();
+      const auto &attrs = node.attributes();
       if (!attrs.empty())
-        dump_attributes(attrs, label);
+        dumpAttributes(attrs, label);
 
       label += "</table>>";
 
-      gv << "    " << node_id << " [shape=plaintext, label=" << label
+      gv << "    " << nodeId << " [shape=plaintext, label=" << label
          << ", color=\"#252A34\", penwidth=2.5];\n";
     }
     gv << "\n";
   }
 
-  static void dump_attributes(const Attributes &attrs, std::string &label) {
-    for (const auto &[attr_name, attr] : attrs) {
-      std::string attr_str = escape_html(attr_name) + "=";
+  static void dumpAttributes(const Attributes &attrs, std::string &label) {
+    for (const auto &[attrName, attr] : attrs) {
+      std::string attrStr = escapeHtml(attrName) + "=";
       std::visit(
-          [&attr_str](const auto &val) {
+          [&attrStr](const auto &val) {
             using T = std::decay_t<decltype(val)>;
             if constexpr (std::is_same_v<T, float>) {
-              attr_str += std::to_string(val);
+              attrStr += std::to_string(val);
             } else if constexpr (std::is_same_v<T, int64_t>) {
-              attr_str += std::to_string(val);
+              attrStr += std::to_string(val);
             } else if constexpr (std::is_same_v<T, std::string>) {
-              attr_str += "\"" + escape_html(val) + "\"";
+              attrStr += "\"" + escapeHtml(val) + "\"";
             } else if constexpr (std::is_same_v<T, std::vector<float>>) {
-              attr_str += "[";
+              attrStr += "[";
               for (size_t i = 0; i < val.size(); ++i) {
                 if (i > 0)
-                  attr_str += ",";
-                attr_str += std::to_string(val[i]);
+                  attrStr += ",";
+                attrStr += std::to_string(val[i]);
               }
-              attr_str += "]";
+              attrStr += "]";
             } else if constexpr (std::is_same_v<T, std::vector<int64_t>>) {
-              attr_str += "[";
+              attrStr += "[";
               for (size_t i = 0; i < val.size(); ++i) {
                 if (i > 0)
-                  attr_str += ",";
-                attr_str += std::to_string(val[i]);
+                  attrStr += ",";
+                attrStr += std::to_string(val[i]);
               }
-              attr_str += "]";
+              attrStr += "]";
             }
           },
-          attr.get_value());
-      label += "<tr><td align=\"left\">" + attr_str + "</td></tr>";
+          attr.value());
+      label += "<tr><td align=\"left\">" + attrStr + "</td></tr>";
     }
   }
 };
