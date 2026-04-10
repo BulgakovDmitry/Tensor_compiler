@@ -43,7 +43,7 @@ llvm::cl::opt<std::string> outputFilename(
     "o",
     llvm::cl::desc("Output filename (for assembly)"),
     llvm::cl::value_desc("filename"),
-    llvm::cl::init("-")  // "-" = stdout
+    llvm::cl::init("a.s")
 );
 
 llvm::cl::opt<std::string> targetTriple(
@@ -143,15 +143,9 @@ int driver(int argc, char *argv[]) {
     if (emitTarget == "asm") {
         std::error_code ec;
         llvm::raw_fd_ostream asmStream(
-            outputFilename == "-" ? "" : outputFilename.getValue(),
+            outputFilename == "a.s" ? "a.s" : outputFilename.getValue(),
             ec,
             llvm::sys::fs::OF_None);
-
-        if (ec) {
-            llvm::errs() << "Error: Could not open output file '"
-                        << outputFilename.getValue() << "': " << ec.message() << "\n";
-            return 1;
-        }
 
         llvm::raw_pwrite_stream &outStream =
             (outputFilename == "-") ? llvm::outs() : asmStream;
