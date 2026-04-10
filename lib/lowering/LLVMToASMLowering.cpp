@@ -27,18 +27,19 @@ LogicalResult generateAssembly(llvm::Module *llvmModule,
   llvm::InitializeAllAsmPrinters();
 
   std::string error;
+  auto targetTriple = triple.empty() ? llvmModule->getTargetTriple() : triple;
   const llvm::Target *target = llvm::TargetRegistry::lookupTarget(
-      triple.empty() ? llvmModule->getTargetTriple() : triple, error);
+      targetTriple, error);
   if (!target) {
     llvm::errs() << "Error: " << error << "\n";
     return failure();
   }
 
   llvm::TargetOptions opt;
-  auto RM = std::optional<llvm::Reloc::Model>();
+  auto RM = std::optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
 
   std::unique_ptr<llvm::TargetMachine> TM(
-      target->createTargetMachine(llvmModule->getTargetTriple(),
+      target->createTargetMachine(targetTriple,
                                 /*CPU=*/"",
                                 /*Features=*/"",
                                 opt,

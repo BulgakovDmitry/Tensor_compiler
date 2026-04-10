@@ -48,8 +48,8 @@ llvm::cl::opt<std::string> outputFilename(
 
 llvm::cl::opt<std::string> targetTriple(
     "mtriple",
-    llvm::cl::desc("Target triple for code generation"),
-    llvm::cl::init("")
+    llvm::cl::desc("Target triple for codegen (default: x86_64-pc-linux-gnu)"),
+    llvm::cl::init("x86_64-pc-linux-gnu")
 );
 
 llvm::cl::opt<unsigned> optLevel(
@@ -143,22 +143,17 @@ int driver(int argc, char *argv[]) {
     if (emitTarget == "asm") {
         std::error_code ec;
         llvm::raw_fd_ostream asmStream(
-            outputFilename == "a.s" ? "a.s" : outputFilename.getValue(),
+            outputFilename.getValue(),
             ec,
             llvm::sys::fs::OF_None);
 
-        llvm::raw_pwrite_stream &outStream =
-            (outputFilename == "-") ? llvm::outs() : asmStream;
-
         if (mlir::failed(generateAssembly(
-                llvmModule.get(), targetTriple, optLevel, outStream))) {
+                llvmModule.get(), targetTriple, optLevel, asmStream))) {
             llvm::errs() << "Error: Assembly generation failed\n";
             return 1;
         }
 
-        if (outputFilename != "-") {
-            llvm::outs() << "Assembly written to " << outputFilename << "\n";
-        }
+        llvm::outs() << "Assembly written to " << outputFilename << "\n";
         return 0;
     }
 
