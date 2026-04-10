@@ -30,6 +30,8 @@
 #include "mlir/Dialect/ControlFlow/IR/ControlFlow.h"
 #include "mlir/Dialect/LLVMIR/LLVMDialect.h"
 
+#include <iostream>
+
 using namespace mlir;
 
 namespace tensor_compiler {
@@ -90,16 +92,13 @@ LogicalResult MLIRToLLVMLowering::lower(OwningOpRef<ModuleOp> &&mlirModule) {
     return success();
 }
 
-std::unique_ptr<llvm::Module> MLIRToLLVMLowering::MLIRToLLVMLowering::exportToLLVM() {
+std::unique_ptr<llvm::Module> MLIRToLLVMLowering::MLIRToLLVMLowering::exportToLLVM(llvm::LLVMContext &llvmCtx) {
     if (!mlirModule_) {
         llvm::errs() << "Error: No module to export\n";
         return nullptr;
     }
 
-    mlirModule_->print(llvm::errs());
-
-    llvm::LLVMContext llvmCtx;
-    auto llvmModule = translateModuleToLLVMIR(*mlirModule_, llvmCtx, "tensor_network");
+    std::unique_ptr<llvm::Module> llvmModule = translateModuleToLLVMIR(*mlirModule_, llvmCtx, "tensor_network");
 
     if (!llvmModule) {
         llvm::errs() << "Error: translateModuleToLLVMIR returned nullptr\n";

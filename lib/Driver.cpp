@@ -128,7 +128,8 @@ int driver(int argc, char *argv[]) {
         return 1;
     }
 
-    auto llvmModule = lowering.exportToLLVM();
+    llvm::LLVMContext llvmCtx;
+    auto llvmModule = lowering.exportToLLVM(llvmCtx);
     if (!llvmModule) {
         llvm::errs() << "Error: Failed to export LLVM IR\n";
         return 1;
