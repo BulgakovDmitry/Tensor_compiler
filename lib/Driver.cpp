@@ -1,11 +1,12 @@
 #include "Driver.h"
-#include "codegen/Codegen.h"
-#include "graph_dump/DumpPathGen.h"
-#include "graph_dump/GraphvizDumper.h"
-#include "lowering/MLIRToLLVMLowering.h"
-#include "lowering/LLVMToASMLowering.h"
+#include "Codegen/Codegen.h"
+#include "GraphDump/DumpPathGen.h"
+#include "GraphDump/GraphvizDumper.h"
+#include "Lowering/MLIRToLLVM.h"
+#include "Lowering/LLVMToASM.h"
+#include "Lowering/LLVMToLLVMIR.h"
 #include "onnx.pb.h"
-#include "structure/Graph.h"
+#include "Structure/Graph.h"
 #include <cstring>
 #include <fstream>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
@@ -36,7 +37,7 @@ llvm::cl::opt<std::string> inputFile(
 llvm::cl::opt<std::string> emitTarget(
     "emit",
     llvm::cl::desc("Compilation stage: mlir, llvm, or asm"),
-    llvm::cl::init("llvm")
+    llvm::cl::init("asm")
 );
 
 llvm::cl::opt<std::string> outputFilename(
@@ -108,8 +109,6 @@ int driver(int argc, char *argv[]) {
     mlir::registerBuiltinDialectTranslation(context);
     mlir::registerLLVMDialectTranslation(context);
 
-    MLIRToLLVMLowering lowering(context);
-
     tensor_compiler::Codegen codegen{context};
     auto mlirModule = codegen.generate(compute_graph);
     if (!mlirModule) {
@@ -123,13 +122,13 @@ int driver(int argc, char *argv[]) {
         return 0;
     }
 
-    if (mlir::failed(lowering.lower(std::move(mlirModule)))) {
+    if (mlir::failed(MLIRToLLVM(context, mlirModule))) {
         llvm::errs() << "Error: MLIR to LLVM lowering failed\n";
         return 1;
     }
 
     llvm::LLVMContext llvmCtx;
-    auto llvmModule = lowering.exportToLLVM(llvmCtx);
+    auto llvmModule = LLVMToLLVMIR(llvmCtx, mlirModule);
     if (!llvmModule) {
         llvm::errs() << "Error: Failed to export LLVM IR\n";
         return 1;
@@ -152,8 +151,6 @@ int driver(int argc, char *argv[]) {
             llvm::errs() << "Error: Assembly generation failed\n";
             return 1;
         }
-
-        llvm::outs() << "Assembly written to " << outputFilename << "\n";
         return 0;
     }
 

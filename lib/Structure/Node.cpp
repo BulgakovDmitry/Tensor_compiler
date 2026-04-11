@@ -1,4 +1,4 @@
-#include "structure/Node.h"
+#include "Structure/Node.h"
 
 namespace tensor_compiler {
 
