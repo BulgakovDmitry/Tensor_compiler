@@ -54,14 +54,56 @@ In the era of deep learning and artificial intelligence, neural networks have be
 Tensor compilers address this critical challenge by transforming high-level neural network descriptions into highly optimized execution code. Unlike traditional compilers that work with scalar values, tensor compilers operate on multidimensional arrays (tensors) and apply domain-specific optimizations that dramatically improve performance and efficiency.
 
 ## <a id="methodology"></a> Methodology
-The compiler implements a multi-phase pipeline: parsing `ONNX` model into protobuf `ModelProto` and building internal `Graph`, `MLIR` module generation via with dialects (`func`, `arith`, `linalg`, `memref`, `LLVM`, etc.), lowering `MLIR` to `LLVM Dialect`, export `LLVM Dialect` to `LLVM IR`, assembly generation from `LLVM IR` with `O0-O3` optimization and target triple.
+The compiler implements a multi-phase pipeline: parsing `ONNX` model into protobuf `ModelProto` and building internal `Graph`, `MLIR` module generation via with dialects (`func`, `arith`, `linalg`, `memref`, `LLVM`, etc.), lowering `MLIR` to `LLVM Dialect`, export `LLVM Dialect` to `LLVM IR`, assembly generation from `LLVM IR` with `O0-O3` optimization and target triple (Fig. 1).
 
-<div align="center">
-<img src="img/tensor_pipeline.jpg">
+<div align="center"><img src="img/tensor_pipeline.jpg"></div><br>
   <div align="center"> Fig 1. Tensor compiler pipeline. </div><br>
-</div><br>
+
+## <a id="internal-computational-graph-representation"></a> Internal computational graph representation
 
 
+## <a id="parsing-onnx-model"></a> Parsing ONNX Model
+
+<details>
+<summary>Parsing of ONNX Model:</summary>
+
+```c++
+Graph::Graph(const onnx::GraphProto &graph) : name_{graph.name()} {
+    for (const auto &initializer : graph.initializer()) {
+        auto tensor = handleTensor(initializer);
+        addTensor(std::move(tensor));
+    }
+
+    for (const auto &input : graph.input()) {
+        auto tensor = handleTensor(input, Tensor_kind::input);
+        addTensor(std::move(tensor));
+        addInput(input.name());
+    }
+
+    std::size_t node_idx = 0;
+    for (const auto &node : graph.node()) {
+        auto new_node = handleNode(node_idx, node);
+        addNode(std::move(new_node));
+    }
+
+    for (const auto &output : graph.output()) {
+        Tensor tensor = handleTensor(output, Tensor_kind::output);
+        addTensor(std::move(tensor));
+        addOutput(output.name());
+    }
+}
+```
+</details>
+
+`ONNX parsing` constructor sequentially processes `initializer`, `input`, `node`, `output` elements from `GraphProto`, creating the internal computational `DAG` with constants, inputs, operators, and outputs.
+
+## <a id="mlir-generation"></a> MLIR generation
+
+## <a id="lowering-mlir-to-llvm-dialect"></a> Lowering MLIR to LLVM Dialect
+
+## <a id="export-llvm-dialect-to-llvm-ir"></a> Export LLVM Dialect to LLVM IR
+
+## <a id="assembly-generation-from-llvm-ir"></a> Assembly generation from LLVM IR
 
 ## <a id="using-dump"></a>Using dump 🏰
 To enable the graph dump option for the `compute graph`, you need to set the `-GRAPH_DUMP` flag, which is disabled by default:
