@@ -2,13 +2,11 @@
 #define INCLUDE_NODE_H
 
 #include "Attribute.h"
-#include "Tensor.h"
 #include "onnx.pb.h"
 #include <cstddef>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <string>
 #include <unordered_map>
-#include <variant>
 #include <vector>
 
 namespace tensor_compiler {

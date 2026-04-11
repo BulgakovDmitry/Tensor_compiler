@@ -1,5 +1,7 @@
 #include "Structure/Graph.h"
 #include "Handlers.h"
+#include <string>
+#include <vector>
 
 namespace tensor_compiler {
 
