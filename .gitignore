@@ -5,3 +5,4 @@ onnx/onnx.pb.cc
 utils*
 dump/
 .vscode/
+a.s
