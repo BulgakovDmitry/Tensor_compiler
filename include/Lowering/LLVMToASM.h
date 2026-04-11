@@ -12,12 +12,10 @@ class raw_pwrite_stream;
 
 namespace tensor_compiler {
 
-mlir::LogicalResult generateAssembly(
-    llvm::Module *llvmModule,
-    const std::string &triple,
-    unsigned optLevel,
-    llvm::raw_pwrite_stream &os
-);
+mlir::LogicalResult generateAssembly(llvm::Module *llvmModule,
+                                     const std::string &triple,
+                                     unsigned optLevel,
+                                     llvm::raw_pwrite_stream &os);
 } // namespace tensor_compiler
 
 #endif // INCLUDE_LOWERING_LLVMTOASMLOWERING_H
