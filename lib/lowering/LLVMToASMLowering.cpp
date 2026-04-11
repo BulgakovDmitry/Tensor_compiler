@@ -13,7 +13,8 @@
 #include <string>
 
 using namespace mlir;
-using namespace tensor_compiler;
+
+namespace tensor_compiler {
 
 LogicalResult generateAssembly(llvm::Module *llvmModule,
                                       const std::string &triple,
@@ -26,18 +27,19 @@ LogicalResult generateAssembly(llvm::Module *llvmModule,
   llvm::InitializeAllAsmPrinters();
 
   std::string error;
+  auto targetTriple = triple.empty() ? llvmModule->getTargetTriple() : triple;
   const llvm::Target *target = llvm::TargetRegistry::lookupTarget(
-      triple.empty() ? llvmModule->getTargetTriple().str() : triple, error);
+      targetTriple, error);
   if (!target) {
     llvm::errs() << "Error: " << error << "\n";
     return failure();
   }
 
   llvm::TargetOptions opt;
-  auto RM = std::optional<llvm::Reloc::Model>();
+  auto RM = std::optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
 
   std::unique_ptr<llvm::TargetMachine> TM(
-      target->createTargetMachine(llvmModule->getTargetTriple(),
+      target->createTargetMachine(targetTriple,
                                 /*CPU=*/"",
                                 /*Features=*/"",
                                 opt,
@@ -48,7 +50,7 @@ LogicalResult generateAssembly(llvm::Module *llvmModule,
   }
 
   llvmModule->setDataLayout(TM->createDataLayout());
-  llvmModule->setTargetTriple(TM->getTargetTriple());
+  llvmModule->setTargetTriple(TM->getTargetTriple().str());
 
   llvm::legacy::PassManager PM;
   llvm::CodeGenFileType fileType = llvm::CodeGenFileType::AssemblyFile;
@@ -61,3 +63,5 @@ LogicalResult generateAssembly(llvm::Module *llvmModule,
   PM.run(*llvmModule);
   return success();
 }
+
+} // namespace tensor_compiler

@@ -21,7 +21,7 @@ public:
 private:
   std::string name_;
 
-  AttrValue value;
+  AttrValue value_;
 
 public:
   Attribute() = default;
@@ -30,19 +30,19 @@ public:
   /// @param name Attribute name.
   /// @param value Attribute value.
   Attribute(const std::string &name, const AttrValue &value)
-      : name_{name}, value{value} {}
+      : name_{name}, value_{value} {}
 
   /// @brief Get the attribute name.
   /// @return const reference to name string.
-  const std::string &get_name() const { return name_; }
+  const std::string &name() const { return name_; }
 
   /// @brief Get the attribute value.
   /// @return const reference to AttrValue variant.
-  const AttrValue &get_value() const { return value; }
+  const AttrValue &value() const { return value_; }
 
   /// @brief Set the attribute value.
-  /// @param new_value New variant value.
-  void set_value(const AttrValue &new_value) { value = new_value; }
+  /// @param newValue New variant value.
+  void setValue(const AttrValue &newValue) { value_ = newValue; }
 };
 
 } // namespace tensor_compiler

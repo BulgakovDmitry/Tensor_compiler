@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "node.h"
+#include "Node.h"
 
 using namespace tensor_compiler;
 
@@ -13,44 +13,44 @@ using namespace tensor_compiler;
 TEST(Node, ConstructorStoresNameOpcodeAndIdDefault) {
     Node n("MyNode", "Add");
 
-    EXPECT_EQ(n.get_name(), "MyNode");
-    EXPECT_EQ(n.get_opcode(), "Add");
-    EXPECT_EQ(n.get_id(), 0u);
+    EXPECT_EQ(n.name(), "MyNode");
+    EXPECT_EQ(n.opcode(), "Add");
+    EXPECT_EQ(n.id(), 0u);
 
-    EXPECT_TRUE(n.get_inputs().empty());
-    EXPECT_TRUE(n.get_outputs().empty());
-    EXPECT_TRUE(n.get_attributes().empty());
+    EXPECT_TRUE(n.inputs().empty());
+    EXPECT_TRUE(n.outputs().empty());
+    EXPECT_TRUE(n.attributes().empty());
 }
 
 TEST(Node, ConstructorStoresExplicitId) {
     Node n("N", "Relu", 123);
 
-    EXPECT_EQ(n.get_name(), "N");
-    EXPECT_EQ(n.get_opcode(), "Relu");
-    EXPECT_EQ(n.get_id(), 123u);
+    EXPECT_EQ(n.name(), "N");
+    EXPECT_EQ(n.opcode(), "Relu");
+    EXPECT_EQ(n.id(), 123u);
 }
 
-// -------------------------------- set_name ------------------------------------
+// -------------------------------- setName ------------------------------------
 
 TEST(Node, SetNameUpdatesName) {
     Node n("A", "Mul", 1);
-    EXPECT_EQ(n.get_name(), "A");
+    EXPECT_EQ(n.name(), "A");
 
-    n.set_name("B");
-    EXPECT_EQ(n.get_name(), "B");
-    EXPECT_EQ(n.get_opcode(), "Mul");
-    EXPECT_EQ(n.get_id(), 1u);
+    n.setName("B");
+    EXPECT_EQ(n.name(), "B");
+    EXPECT_EQ(n.opcode(), "Mul");
+    EXPECT_EQ(n.id(), 1u);
 }
 
-// -------------------------------- set_inputs ----------------------------------
+// -------------------------------- setInputs ----------------------------------
 
 TEST(Node, SetInputsFromVectorStoresInputs) {
     Node n("N", "Op");
 
     std::vector<std::string> in = {"x", "y", "z"};
-    n.set_inputs(in);
+    n.setInputs(in);
 
-    const auto& got = n.get_inputs();
+    const auto& got = n.inputs();
     ASSERT_EQ(got.size(), 3u);
     EXPECT_EQ(got[0], "x");
     EXPECT_EQ(got[1], "y");
@@ -59,32 +59,32 @@ TEST(Node, SetInputsFromVectorStoresInputs) {
 
 TEST(Node, SetInputsFromRepeatedPtrFieldCopiesAndClearsPrevious) {
     Node n("N", "Op");
-    n.set_inputs(std::vector<std::string>{"old1", "old2"});
-    ASSERT_EQ(n.get_inputs().size(), 2u);
+    n.setInputs(std::vector<std::string>{"old1", "old2"});
+    ASSERT_EQ(n.inputs().size(), 2u);
 
     Node::name_t rp;
     rp.Add("a");
     rp.Add("b");
     rp.Add("c");
 
-    n.set_inputs(rp);
+    n.setInputs(rp);
 
-    const auto& got = n.get_inputs();
+    const auto& got = n.inputs();
     ASSERT_EQ(got.size(), 3u);
     EXPECT_EQ(got[0], "a");
     EXPECT_EQ(got[1], "b");
     EXPECT_EQ(got[2], "c");
 }
 
-// -------------------------------- set_outputs ---------------------------------
+// -------------------------------- setOutputs ---------------------------------
 
 TEST(Node, SetOutputsFromVectorStoresOutputs) {
     Node n("N", "Op");
 
     std::vector<std::string> out = {"o1", "o2"};
-    n.set_outputs(out);
+    n.setOutputs(out);
 
-    const auto& got = n.get_outputs();
+    const auto& got = n.outputs();
     ASSERT_EQ(got.size(), 2u);
     EXPECT_EQ(got[0], "o1");
     EXPECT_EQ(got[1], "o2");
@@ -92,51 +92,51 @@ TEST(Node, SetOutputsFromVectorStoresOutputs) {
 
 TEST(Node, SetOutputsFromRepeatedPtrFieldCopiesAndClearsPrevious) {
     Node n("N", "Op");
-    n.set_outputs(std::vector<std::string>{"prev"});
-    ASSERT_EQ(n.get_outputs().size(), 1u);
+    n.setOutputs(std::vector<std::string>{"prev"});
+    ASSERT_EQ(n.outputs().size(), 1u);
 
     Node::name_t rp;
     rp.Add("u");
     rp.Add("v");
 
-    n.set_outputs(rp);
+    n.setOutputs(rp);
 
-    const auto& got = n.get_outputs();
+    const auto& got = n.outputs();
     ASSERT_EQ(got.size(), 2u);
     EXPECT_EQ(got[0], "u");
     EXPECT_EQ(got[1], "v");
 }
 
-// ------------------------------ set_attribute ----------------------------------
+// ------------------------------ setAttribute ----------------------------------
 
 TEST(Node, SetAttributeInsertsAndCanOverwrite) {
     Node n("N", "Op");
 
-    EXPECT_FALSE(n.has_attribute("alpha"));
+    EXPECT_FALSE(n.hasAttribute("alpha"));
 
-    n.set_attribute("alpha", Attribute::AttrValue{1.5f});
-    EXPECT_TRUE(n.has_attribute("alpha"));
+    n.setAttribute("alpha", Attribute::AttrValue{1.5f});
+    EXPECT_TRUE(n.hasAttribute("alpha"));
 
-    const auto& attrs1 = n.get_attributes();
+    const auto& attrs1 = n.attributes();
     ASSERT_TRUE(attrs1.find("alpha") != attrs1.end());
-    ASSERT_TRUE(std::holds_alternative<float>(attrs1.at("alpha").get_value()));
-    EXPECT_FLOAT_EQ(std::get<float>(attrs1.at("alpha").get_value()), 1.5f);
+    ASSERT_TRUE(std::holds_alternative<float>(attrs1.at("alpha").value()));
+    EXPECT_FLOAT_EQ(std::get<float>(attrs1.at("alpha").value()), 1.5f);
 
-    n.set_attribute("alpha", Attribute::AttrValue{int64_t{7}});
+    n.setAttribute("alpha", Attribute::AttrValue{int64_t{7}});
 
-    const auto& attrs2 = n.get_attributes();
+    const auto& attrs2 = n.attributes();
     ASSERT_TRUE(attrs2.find("alpha") != attrs2.end());
-    ASSERT_TRUE(std::holds_alternative<int64_t>(attrs2.at("alpha").get_value()));
-    EXPECT_EQ(std::get<int64_t>(attrs2.at("alpha").get_value()), 7);
+    ASSERT_TRUE(std::holds_alternative<int64_t>(attrs2.at("alpha").value()));
+    EXPECT_EQ(std::get<int64_t>(attrs2.at("alpha").value()), 7);
 }
 
 TEST(Node, HasAttributeReflectsPresence) {
     Node n("N", "Op");
 
-    EXPECT_FALSE(n.has_attribute("missing"));
-    n.set_attribute("present", Attribute::AttrValue{std::string{"x"}});
-    EXPECT_TRUE(n.has_attribute("present"));
-    EXPECT_FALSE(n.has_attribute("missing"));
+    EXPECT_FALSE(n.hasAttribute("missing"));
+    n.setAttribute("present", Attribute::AttrValue{std::string{"x"}});
+    EXPECT_TRUE(n.hasAttribute("present"));
+    EXPECT_FALSE(n.hasAttribute("missing"));
 }
 
 // ----------------------------- parse_attributes --------------------------------
@@ -189,34 +189,34 @@ TEST(Node, ParseAttributesParsesFloatIntStringFloatsInts) {
     }
 
     Node n("N", "Op");
-    n.parse_attributes(proto);
+    n.parseAttributes(proto);
 
-    EXPECT_TRUE(n.has_attribute("f"));
-    EXPECT_TRUE(n.has_attribute("i"));
-    EXPECT_TRUE(n.has_attribute("s"));
-    EXPECT_TRUE(n.has_attribute("fs"));
-    EXPECT_TRUE(n.has_attribute("is"));
+    EXPECT_TRUE(n.hasAttribute("f"));
+    EXPECT_TRUE(n.hasAttribute("i"));
+    EXPECT_TRUE(n.hasAttribute("s"));
+    EXPECT_TRUE(n.hasAttribute("fs"));
+    EXPECT_TRUE(n.hasAttribute("is"));
 
-    const auto& attrs = n.get_attributes();
+    const auto& attrs = n.attributes();
 
-    ASSERT_TRUE(std::holds_alternative<float>(attrs.at("f").get_value()));
-    EXPECT_FLOAT_EQ(std::get<float>(attrs.at("f").get_value()), 2.25f);
+    ASSERT_TRUE(std::holds_alternative<float>(attrs.at("f").value()));
+    EXPECT_FLOAT_EQ(std::get<float>(attrs.at("f").value()), 2.25f);
 
-    ASSERT_TRUE(std::holds_alternative<int64_t>(attrs.at("i").get_value()));
-    EXPECT_EQ(std::get<int64_t>(attrs.at("i").get_value()), 42);
+    ASSERT_TRUE(std::holds_alternative<int64_t>(attrs.at("i").value()));
+    EXPECT_EQ(std::get<int64_t>(attrs.at("i").value()), 42);
 
-    ASSERT_TRUE(std::holds_alternative<std::string>(attrs.at("s").get_value()));
-    EXPECT_EQ(std::get<std::string>(attrs.at("s").get_value()), "hello");
+    ASSERT_TRUE(std::holds_alternative<std::string>(attrs.at("s").value()));
+    EXPECT_EQ(std::get<std::string>(attrs.at("s").value()), "hello");
 
-    ASSERT_TRUE(std::holds_alternative<std::vector<float>>(attrs.at("fs").get_value()));
-    const auto& vf = std::get<std::vector<float>>(attrs.at("fs").get_value());
+    ASSERT_TRUE(std::holds_alternative<std::vector<float>>(attrs.at("fs").value()));
+    const auto& vf = std::get<std::vector<float>>(attrs.at("fs").value());
     ASSERT_EQ(vf.size(), 3u);
     EXPECT_FLOAT_EQ(vf[0], 0.5f);
     EXPECT_FLOAT_EQ(vf[1], -1.0f);
     EXPECT_FLOAT_EQ(vf[2], 3.25f);
 
-    ASSERT_TRUE(std::holds_alternative<std::vector<int64_t>>(attrs.at("is").get_value()));
-    const auto& vi = std::get<std::vector<int64_t>>(attrs.at("is").get_value());
+    ASSERT_TRUE(std::holds_alternative<std::vector<int64_t>>(attrs.at("is").value()));
+    const auto& vi = std::get<std::vector<int64_t>>(attrs.at("is").value());
     ASSERT_EQ(vi.size(), 3u);
     EXPECT_EQ(vi[0], 1);
     EXPECT_EQ(vi[1], 2);
@@ -240,20 +240,20 @@ TEST(Node, ParseAttributesIgnoresUnsupportedAttributeTypes) {
     }
 
     Node n("N", "Op");
-    n.parse_attributes(proto);
+    n.parseAttributes(proto);
 
-    EXPECT_TRUE(n.has_attribute("ok"));
-    EXPECT_FALSE(n.has_attribute("ignored"));
+    EXPECT_TRUE(n.hasAttribute("ok"));
+    EXPECT_FALSE(n.hasAttribute("ignored"));
 }
 
 TEST(Node, ParseAttributesOverwritesExistingAttributeWithSameName) {
     Node n("N", "Op");
-    n.set_attribute("axis", Attribute::AttrValue{int64_t{0}});
-    ASSERT_TRUE(n.has_attribute("axis"));
+    n.setAttribute("axis", Attribute::AttrValue{int64_t{0}});
+    ASSERT_TRUE(n.hasAttribute("axis"));
     {
-        const auto& attrs = n.get_attributes();
-        ASSERT_TRUE(std::holds_alternative<int64_t>(attrs.at("axis").get_value()));
-        EXPECT_EQ(std::get<int64_t>(attrs.at("axis").get_value()), 0);
+        const auto& attrs = n.attributes();
+        ASSERT_TRUE(std::holds_alternative<int64_t>(attrs.at("axis").value()));
+        EXPECT_EQ(std::get<int64_t>(attrs.at("axis").value()), 0);
     }
 
     onnx::NodeProto proto;
@@ -262,9 +262,9 @@ TEST(Node, ParseAttributesOverwritesExistingAttributeWithSameName) {
     a->set_type(onnx::AttributeProto_AttributeType_INT);
     a->set_i(3);
 
-    n.parse_attributes(proto);
+    n.parseAttributes(proto);
 
-    const auto& attrs2 = n.get_attributes();
-    ASSERT_TRUE(std::holds_alternative<int64_t>(attrs2.at("axis").get_value()));
-    EXPECT_EQ(std::get<int64_t>(attrs2.at("axis").get_value()), 3);
+    const auto& attrs2 = n.attributes();
+    ASSERT_TRUE(std::holds_alternative<int64_t>(attrs2.at("axis").value()));
+    EXPECT_EQ(std::get<int64_t>(attrs2.at("axis").value()), 3);
 }

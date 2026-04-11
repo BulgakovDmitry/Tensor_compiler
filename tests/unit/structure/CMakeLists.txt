@@ -7,9 +7,9 @@ set(SRC_LIST
     src/attributes.cpp
     src/node.cpp
     src/graph.cpp
-    ../../../lib/structure/tensor.cpp
-    ../../../lib/structure/graph.cpp
-    ../../../lib/structure/node.cpp
+    ../../../lib/structure/Tensor.cpp
+    ../../../lib/structure/Graph.cpp
+    ../../../lib/structure/Node.cpp
 )
 
 add_executable(structure ${SRC_LIST})

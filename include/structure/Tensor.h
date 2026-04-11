@@ -59,55 +59,55 @@ public:
 
   /// @brief Get the tensor name.
   /// @return const reference to name string.
-  const std::string &get_name() const;
+  const std::string &name() const;
 
   /// @brief Get the data type.
   /// @return int (onnx::TensorProto_DataType value).
-  int get_type() const;
+  int type() const;
 
   /// @brief Get the tensor kind.
   /// @return Tensor_kind.
-  Tensor_kind get_kind() const;
+  Tensor_kind kind() const;
 
   /// @brief Get the raw data as a string.
   /// @return const reference to data string.
-  const std::string &get_data() const;
+  const std::string &data() const;
 
   /// @brief Get the tensor shape.
   /// @return const reference to vector of dimensions.
-  const std::vector<int64_t> &get_shape() const;
+  const std::vector<int64_t> &shape() const;
 
   /// @brief Get the protobuf dim field (may be unused).
   /// @return const dim_type.
-  const dim_type get_dim() const;
+  const dim_type dim() const;
 
   /// @brief Set the tensor name.
   /// @param name New name.
-  void set_name(const std::string &name);
+  void setName(const std::string &name);
 
   /// @brief Set the data type.
   /// @param type onnx::TensorProto_DataType value.
-  void set_type(const int type);
+  void setType(const int type);
 
   /// @brief Set the tensor kind.
   /// @param kind Tensor_kind.
-  void set_kind(Tensor_kind kind);
+  void setKind(Tensor_kind kind);
 
   /// @brief Set the raw data.
   /// @param data Binary string.
-  void set_data(const std::string &data);
+  void setData(const std::string &data);
 
   /// @brief Set the tensor shape.
   /// @param shape Vector of dimensions.
-  void set_shape(const std::vector<int64_t> &shape);
+  void setShape(const std::vector<int64_t> &shape);
 
   /// @brief Set the protobuf dim field.
   /// @param dim dim_type.
-  void set_dim(const dim_type dim);
+  void setDim(const dim_type dim);
 
   /// @brief Check if the tensor is a constant (initializer).
   /// @return true if kind_ == Tensor_kind::constant.
-  bool is_constant() const;
+  bool isConstant() const;
 };
 
 } // namespace tensor_compiler

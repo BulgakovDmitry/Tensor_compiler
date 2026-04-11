@@ -1,4 +1,4 @@
-#include "structure/tensor.h"
+#include "structure/Tensor.h"
 
 namespace tensor_compiler {
 
@@ -20,18 +20,18 @@ Tensor Tensor::create(const std::string &name,
                   kind);
 }
 
-const std::string &Tensor::get_name() const { return name_; }
-int Tensor::get_type() const { return type_; }
-const std::string &Tensor::get_data() const { return data_; }
-const std::vector<int64_t> &Tensor::get_shape() const { return shape_; }
-Tensor_kind Tensor::get_kind() const { return kind_; }
-const dim_type Tensor::get_dim() const { return dim_; }
+const std::string &Tensor::name() const { return name_; }
+int Tensor::type() const { return type_; }
+const std::string &Tensor::data() const { return data_; }
+const std::vector<int64_t> &Tensor::shape() const { return shape_; }
+Tensor_kind Tensor::kind() const { return kind_; }
+const dim_type Tensor::dim() const { return dim_; }
 
-void Tensor::set_name(const std::string &name) { name_ = name; }
-void Tensor::set_type(const int type) { type_ = type; }
-void Tensor::set_kind(Tensor_kind kind) { kind_ = kind; }
-void Tensor::set_data(const std::string &data) { data_ = data; }
-void Tensor::set_shape(const std::vector<int64_t> &shape) {
+void Tensor::setName(const std::string &name) { name_ = name; }
+void Tensor::setType(const int type) { type_ = type; }
+void Tensor::setKind(Tensor_kind kind) { kind_ = kind; }
+void Tensor::setData(const std::string &data) { data_ = data; }
+void Tensor::setShape(const std::vector<int64_t> &shape) {
     shape_ = shape;
     dim_.Clear();
     for (int64_t d : shape_) {
@@ -39,12 +39,12 @@ void Tensor::set_shape(const std::vector<int64_t> &shape) {
     }
 }
 
-void Tensor::set_dim(const dim_type dim) {
+void Tensor::setDim(const dim_type dim) {
     dim_ = dim;
     shape_.assign(dim_.begin(), dim_.end());
 }
 
-bool Tensor::is_constant() const {
+bool Tensor::isConstant() const {
     return kind_ == Tensor_kind::constant;
 }
 

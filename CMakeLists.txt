@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(tensor_compiler LANGUAGES C  CXX)
+project(tensor_compiler LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -16,6 +16,8 @@ find_package(MLIR REQUIRED CONFIG)
 
 list(APPEND CMAKE_MODULE_PATH "${MLIR_CMAKE_DIR}")
 list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 
 include(AddLLVM)
 include(AddMLIR)
@@ -35,7 +37,6 @@ if(NOT EXISTS "${ONNX_PROTO}")
 endif()
 
 set(PROTO_GEN_DIR "${CMAKE_CURRENT_BINARY_DIR}/onnx_generated")
-
 file(MAKE_DIRECTORY "${PROTO_GEN_DIR}")
 
 protobuf_generate_cpp(
@@ -73,12 +74,12 @@ add_library(tensor_compiler::headers ALIAS tensor_compiler_headers)
 # -------------------------------------------------------------------
 add_executable(${PROJECT_NAME}
     lib/main.cpp
-    lib/driver.cpp
-    lib/structure/tensor.cpp
-    lib/structure/graph.cpp
-    lib/structure/node.cpp
-    lib/codegen/codegen.cpp
-    lib/lowering/mlirtollvmlowering.cpp
+    lib/Driver.cpp
+    lib/structure/Tensor.cpp
+    lib/structure/Graph.cpp
+    lib/structure/Node.cpp
+    lib/codegen/Codegen.cpp
+    lib/lowering/MLIRToLLVMLowering.cpp
     lib/lowering/LLVMToASMLowering.cpp
 )
 
@@ -87,40 +88,59 @@ target_link_libraries(${PROJECT_NAME}
         tensor_compiler::headers
         onnx_proto
         Threads::Threads
+
+        # Core MLIR
         MLIRIR
         MLIRSupport
+
+        # Dialects
         MLIRFuncDialect
         MLIRArithDialect
         MLIRTensorDialect
+        MLIRLinalgDialect
+        MLIRSCFDialect
+        MLIRMemRefDialect
+        MLIRMathDialect
+        MLIRControlFlowDialect
+        MLIRLLVMDialect
+        MLIRBufferizationDialect
+        MLIRBufferizationTransforms
+        MLIRBufferizationToMemRef
 
+        # Conversions
         MLIRPass
         MLIRTransforms
-
         MLIRFuncToLLVM
         MLIRArithToLLVM
         MLIRMemRefToLLVM
         MLIRControlFlowToLLVM
         MLIRMathToLLVM
-
         MLIRLinalgTransforms
         MLIRSCFToControlFlow
         MLIRConvertToLLVMPass
 
-        MLIRLLVMDialect
+        # LLVM → LLVM IR
         MLIRTargetLLVMIRExport
+        MLIRBuiltinToLLVMIRTranslation
+        MLIRLLVMToLLVMIRTranslation
 
+        # LLVM libs
         LLVMCore
         LLVMTarget
-        LLVMSupport
-        LLVMAnalysis
-        LLVMTransformUtils
-
+        LLVMOption
         LLVMX86Info
         LLVMX86Desc
         LLVMX86AsmParser
         LLVMX86CodeGen
         LLVMMC
-        LLVMMCParser      
+        LLVMMCParser
+        LLVMAnalysis
+        LLVMTransformUtils
+        LLVMSupport
+)
+
+target_compile_definitions(tensor_compiler PRIVATE
+    ${LLVM_DEFINITIONS}
 )
 
 # -------------------------------------------------------------------
