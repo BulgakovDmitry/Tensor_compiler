@@ -1,0 +1,7 @@
+<map id="tensor_compiler::Node::setInputs" name="tensor_compiler::Node::setInputs">
+<area shape="rect" id="Node000001" title="Set the inputs from a vector of strings." alt="" coords="108,23,277,63"/>
+<area shape="rect" id="Node000002" href="$node_8cpp.html#a8a97186fbf196aeb53ce3eee61e526ed" title=" " alt="" coords="5,5,60,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,30,60,25,60,20,95,25"/>
+<area shape="rect" id="Node000003" href="$node_8cpp.html#a8229a45dfbdf761bd7505820a1bc03be" title=" " alt="" coords="5,55,60,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="95,61,60,66,60,61,94,55"/>
+</map>
