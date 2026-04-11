@@ -56,7 +56,7 @@ Tensor compilers address this critical challenge by transforming high-level neur
 ## <a id="methodology"></a> Methodology
 The compiler implements a multi-phase pipeline: parsing `ONNX` model into protobuf `ModelProto` and building internal `Graph`, `MLIR` module generation via with dialects (`func`, `arith`, `linalg`, `memref`, `LLVM`, etc.), lowering `MLIR` to `LLVM Dialect`, export `LLVM Dialect` to `LLVM IR`, assembly generation from `LLVM IR` with `O0-O3` optimization and target triple (Fig. 1).
 
-<div align="center"><img src="img/tensor_pipeline.jpg"></div><br>
+<div align="center"><img src="img/tensor_pipeline.jpg" width="600" height="300"></div><br>
   <div align="center"> Fig 1. Tensor compiler pipeline. </div><br>
 
 ## <a id="internal-computational-graph-representation"></a> Internal computational graph representation
