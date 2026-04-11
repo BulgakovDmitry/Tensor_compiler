@@ -37,7 +37,7 @@ llvm::cl::opt<std::string> inputFile(
 llvm::cl::opt<std::string> emitTarget(
     "emit",
     llvm::cl::desc("Compilation stage: mlir, llvm, or asm"),
-    llvm::cl::init("llvm")
+    llvm::cl::init("asm")
 );
 
 llvm::cl::opt<std::string> outputFilename(

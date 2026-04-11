@@ -7,7 +7,7 @@
   ![ONNX](https://img.shields.io/badge/ONNX-Supported-005CED?style=for-the-badge&logo=onnx)
   ![MLIR](https://img.shields.io/badge/MLIR-18.1+-yellow?style=for-the-badge&logo=llvm&logoColor=white)
   ![LLVM](https://img.shields.io/badge/LLVM-18.1+-blue?style=for-the-badge&logo=llvm)
-  
+
 </div>
 
 ## Table of Contents 📖
@@ -22,19 +22,31 @@
 [Documentation](https://bulgakovdmitry.github.io/Tensor_compiler/)
 
 ## <a id="running-the-program"></a>Running the program 🛡️
-Repository `cloning`, `build` and `compilation` is performed using the following commands:
+This project expects a working `MLIR/LLVM` build with `MLIRConfig.cmake` available. Repository cloning, build and compilation is performed using the following commands:
 
 ```
 git clone git@github.com:BulgakovDmitry/Tensor_compiler.git
 cd Tensor_compiler
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build -DMLIR_DIR=/path/to/lib/cmake/mlir -DLLVM_DIR=/path/to/lib/cmake/llvm
 cmake --build build
 ```
 
 Program `execution` is performed in the following format:
 ```
-./build/tensor_compiler <model.onnx>
+./build/tensor-compiler <model.onnx>
 ```
+
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `<input>` | ONNX model file (positional, required) | - |
+| `--emit` | Output stage: `mlir`, `llvm`, or `asm` | `asm` |
+| `-o <file>` | Output filename for assembly | `a.s` |
+| `--mtriple <triple>` | Target triple for codegen | `x86_64-pc-linux-gnu` |
+| `-O <0-3>` | Optimization level | `2` |
+
+Usage example: `./tensor-compiler model.onnx --emit=asm -o output.s -O 3`
+
 
 ## <a id="introduction"></a> Introduction 🎍
 In the era of deep learning and artificial intelligence, neural networks have become increasingly complex and computationally intensive. While high-level frameworks like PyTorch and TensorFlow provide convenient APIs for designing and training models, they often introduce performance overhead when executing these models in production environments.
@@ -42,6 +54,13 @@ In the era of deep learning and artificial intelligence, neural networks have be
 Tensor compilers address this critical challenge by transforming high-level neural network descriptions into highly optimized execution code. Unlike traditional compilers that work with scalar values, tensor compilers operate on multidimensional arrays (tensors) and apply domain-specific optimizations that dramatically improve performance and efficiency.
 
 ## <a id="methodology"></a> Methodology
+The compiler implements a multi-phase pipeline: parsing `ONNX` model into protobuf `ModelProto` and building internal `Graph`, `MLIR` module generation via with dialects (`func`, `arith`, `linalg`, `memref`, `LLVM`, etc.), lowering `MLIR` to `LLVM Dialect`, export `LLVM Dialect` to `LLVM IR`, assembly generation from `LLVM IR` with `O0-O3` optimization and target triple.
+
+<div align="center">
+<img src="img/tensor_pipeline.jpg">
+  <div align="center"> Fig 1. Tensor compiler pipeline. </div><br>
+</div><br>
+
 
 
 ## <a id="using-dump"></a>Using dump 🏰
@@ -57,7 +76,7 @@ This produces the following `graph` representation:
 
 <details>
 <summary>example of generated graph</summary>
-  
+
 <div align="center">
   <img src="img/dump_mnist_12_onnx.svg" alt="Dump Banner" width="1200">
 </div>
