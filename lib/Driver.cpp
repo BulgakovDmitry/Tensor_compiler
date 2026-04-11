@@ -1,11 +1,11 @@
 #include "Driver.h"
-#include "codegen/Codegen.h"
-#include "graph_dump/DumpPathGen.h"
-#include "graph_dump/GraphvizDumper.h"
-#include "lowering/MLIRToLLVMLowering.h"
-#include "lowering/LLVMToASMLowering.h"
+#include "Codegen/Codegen.h"
+#include "GraphDump/DumpPathGen.h"
+#include "GraphDump/GraphvizDumper.h"
+#include "Lowering/MLIRToLLVMLowering.h"
+#include "Lowering/LLVMToASMLowering.h"
 #include "onnx.pb.h"
-#include "structure/Graph.h"
+#include "Structure/Graph.h"
 #include <cstring>
 #include <fstream>
 #include <google/protobuf/io/zero_copy_stream_impl.h>

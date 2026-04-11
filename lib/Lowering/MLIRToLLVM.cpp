@@ -1,4 +1,4 @@
-#include "lowering/MLIRToLLVMLowering.h"
+#include "Lowering/MLIRToLLVMLowering.h"
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/Pass/PassManager.h"

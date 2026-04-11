@@ -1,4 +1,4 @@
-#include "lowering/LLVMToASMLowering.h"
+#include "Lowering/LLVMToASMLowering.h"
 
 #include "llvm/IR/Module.h"
 #include "llvm/IR/LegacyPassManager.h"

@@ -13,7 +13,7 @@
 #include "mlir/IR/Location.h"
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/IR/OwningOpRef.h"
-#include "structure/Graph.h"
+#include "Structure/Graph.h"
 
 namespace tensor_compiler {
 
