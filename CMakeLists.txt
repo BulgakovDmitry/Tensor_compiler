@@ -70,10 +70,10 @@ target_include_directories(tensor_compiler_headers
 add_library(tensor_compiler::headers ALIAS tensor_compiler_headers)
 
 # -------------------------------------------------------------------
-# Main executable
+# Tensor Compiler executable
 # -------------------------------------------------------------------
 add_executable(${PROJECT_NAME}
-    lib/main.cpp
+    tools/tensor-compiler.cpp
     lib/Driver.cpp
     lib/Structure/Tensor.cpp
     lib/Structure/Graph.cpp
@@ -143,6 +143,20 @@ target_link_libraries(${PROJECT_NAME}
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     ${LLVM_DEFINITIONS}
 )
+
+# -------------------------------------------------------------------
+# Tensor Driver library
+# -------------------------------------------------------------------
+add_library(tensor_driver SHARED tensorDriver/lib/TensorDrvImpl.cpp)
+
+target_include_directories(tensor_driver PUBLIC tensorDriver/include)
+
+# -------------------------------------------------------------------
+# Inference App executable
+# -------------------------------------------------------------------
+add_executable(inference-app tools/inference-app.cpp)
+
+target_link_libraries(inference-app PRIVATE tensor_driver dl)
 
 # -------------------------------------------------------------------
 # Graph dump
