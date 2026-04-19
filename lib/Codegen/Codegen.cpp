@@ -1,7 +1,7 @@
 #include <unordered_map>
 #include <vector>
 #include <string>
-#include "codegen/Codegen.h"
+#include "Codegen/Codegen.h"
 
 namespace tensor_compiler {
 
