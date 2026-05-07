@@ -1,1 +1,1 @@
-add_subdirectory(structure)
+add_subdirectory(Structure)

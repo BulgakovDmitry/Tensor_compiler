@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(tensor_compiler LANGUAGES C CXX)
+project(tensor-compiler LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -65,22 +65,23 @@ add_library(tensor_compiler_headers INTERFACE)
 target_include_directories(tensor_compiler_headers
     INTERFACE
         ${CMAKE_SOURCE_DIR}/include
-        ${CMAKE_SOURCE_DIR}/include/structure
+        ${CMAKE_SOURCE_DIR}/include/Structure
 )
 add_library(tensor_compiler::headers ALIAS tensor_compiler_headers)
 
 # -------------------------------------------------------------------
-# Main executable
+# Tensor Compiler executable
 # -------------------------------------------------------------------
 add_executable(${PROJECT_NAME}
-    lib/main.cpp
+    tools/tensor-compiler.cpp
     lib/Driver.cpp
-    lib/structure/Tensor.cpp
-    lib/structure/Graph.cpp
-    lib/structure/Node.cpp
-    lib/codegen/Codegen.cpp
-    lib/lowering/MLIRToLLVMLowering.cpp
-    lib/lowering/LLVMToASMLowering.cpp
+    lib/Structure/Tensor.cpp
+    lib/Structure/Graph.cpp
+    lib/Structure/Node.cpp
+    lib/Codegen/Codegen.cpp
+    lib/Lowering/MLIRToLLVM.cpp
+    lib/Lowering/LLVMToASM.cpp
+    lib/Lowering/LLVMToLLVMIR.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -139,9 +140,23 @@ target_link_libraries(${PROJECT_NAME}
         LLVMSupport
 )
 
-target_compile_definitions(tensor_compiler PRIVATE
+target_compile_definitions(${PROJECT_NAME} PRIVATE
     ${LLVM_DEFINITIONS}
 )
+
+# -------------------------------------------------------------------
+# Tensor Driver library
+# -------------------------------------------------------------------
+add_library(tensor_driver SHARED tensorDriver/lib/TensorDrvImpl.cpp)
+
+target_include_directories(tensor_driver PUBLIC tensorDriver/include)
+
+# -------------------------------------------------------------------
+# Inference App executable
+# -------------------------------------------------------------------
+add_executable(inference-app tools/inference-app.cpp)
+
+target_link_libraries(inference-app PRIVATE tensor_driver dl)
 
 # -------------------------------------------------------------------
 # Graph dump

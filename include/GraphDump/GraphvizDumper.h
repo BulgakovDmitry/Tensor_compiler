@@ -1,10 +1,10 @@
 #ifndef INCLUDE_GRAPHVIZ_DUMPER_HDRIVER_HPP
 #define INCLUDE_GRAPHVIZ_DUMPER_HDRIVER_HPP
 
-#include "structure/Attribute.h"
-#include "structure/Graph.h"
-#include "structure/Node.h"
-#include "structure/Tensor.h"
+#include "Structure/Attribute.h"
+#include "Structure/Graph.h"
+#include "Structure/Node.h"
+#include "Structure/Tensor.h"
 #include <iostream>
 #include <ostream>
 #include <string>
