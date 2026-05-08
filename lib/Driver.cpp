@@ -21,7 +21,16 @@
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Bufferization/IR/Bufferization.h"
+#include "mlir/Dialect/ControlFlow/IR/ControlFlow.h"
+#include "mlir/Dialect/Func/IR/FuncOps.h"
+#include "mlir/Dialect/Linalg/IR/Linalg.h"
+#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
+#include "mlir/Dialect/Math/IR/Math.h"
+#include "mlir/Dialect/MemRef/IR/MemRef.h"
+#include "mlir/Dialect/SCF/IR/SCF.h"
+#include "mlir/Dialect/Tensor/IR/Tensor.h"
 #include "mlir/InitAllDialects.h"
 #include "mlir/Target/LLVMIR/Dialect/Builtin/BuiltinToLLVMIRTranslation.h"
 #include "mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h"
@@ -79,7 +88,7 @@ int driver(int argc, char *argv[]) {
 
 #ifdef GRAPH_DUMP
     // ____________GRAPH DUMP___________ //
-    const auto paths = tensor_compiler::make_dump_paths();
+    const auto paths = tensor_compiler::makeDumpPaths();
     const std::string gv_file = paths.gv.string();
     const std::string svg_file = paths.svg.string();
     // dot dump/dump.gv -Tsvg -o dump/dump.svg
@@ -88,7 +97,7 @@ int driver(int argc, char *argv[]) {
     if (!gv)
         throw std::runtime_error("unable to open gv file\n");
 
-    Graphviz_dumper::dump(compute_graph, gv);
+    GraphvizDumper::dump(compute_graph, gv);
 #endif
 
     mlir::MLIRContext context;

@@ -27,7 +27,7 @@ LogicalResult generateAssembly(llvm::Module *llvmModule,
   llvm::InitializeAllAsmPrinters();
 
   std::string error;
-  auto targetTriple = triple.empty() ? llvmModule->getTargetTriple() : triple;
+  llvm::Triple targetTriple = triple.empty() ? llvmModule->getTargetTriple() : llvm::Triple(triple);
   const llvm::Target *target = llvm::TargetRegistry::lookupTarget(
       targetTriple, error);
   if (!target) {
@@ -50,7 +50,7 @@ LogicalResult generateAssembly(llvm::Module *llvmModule,
   }
 
   llvmModule->setDataLayout(TM->createDataLayout());
-  llvmModule->setTargetTriple(TM->getTargetTriple().str());
+  llvmModule->setTargetTriple(TM->getTargetTriple());
 
   llvm::legacy::PassManager PM;
   llvm::CodeGenFileType fileType = llvm::CodeGenFileType::AssemblyFile;
