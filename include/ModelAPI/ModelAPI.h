@@ -5,8 +5,7 @@
 extern "C" {
 #endif
 
-int tensorCompForward(const float* input, float* output);
-
+int tensorCompForward(const float *input, float *output);
 
 #ifdef __cplusplus
 }
