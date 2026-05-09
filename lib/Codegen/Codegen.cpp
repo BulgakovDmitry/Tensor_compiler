@@ -57,13 +57,16 @@ mlir::OwningOpRef<mlir::ModuleOp> Codegen::generate(const Graph &graph) {
     mlir::Location loc = builder.getUnknownLoc();
     mlir::ModuleOp module = mlir::ModuleOp::create(loc);
 
-    std::string funcName = graph.name().empty() ? "main" : graph.name();
+    constexpr const char* ENTRY_FUNC_NAME = "tensorCompForwardImpl";
+
+    std::string funcName = ENTRY_FUNC_NAME;
 
     std::vector<mlir::Type> inputTypes  = buildInputTypes(graph);
     std::vector<mlir::Type> resultTypes = buildResultTypes(graph);
 
     mlir::FunctionType funcType = builder.getFunctionType(inputTypes, resultTypes);
     auto func = mlir::func::FuncOp::create(loc, funcName, funcType);
+    func.setPublic();
 
     mlir::Block *entryBlock = func.addEntryBlock();
     builder.setInsertionPointToStart(entryBlock);

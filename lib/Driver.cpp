@@ -49,11 +49,12 @@ llvm::cl::opt<std::string> emitTarget(
     llvm::cl::init("asm")
 );
 
+/// TODO: Delete this option
 llvm::cl::opt<std::string> outputFilename(
     "o",
     llvm::cl::desc("Output filename (for assembly)"),
     llvm::cl::value_desc("filename"),
-    llvm::cl::init("a.s")
+    llvm::cl::init("model.s")
 );
 
 llvm::cl::opt<std::string> targetTriple(
