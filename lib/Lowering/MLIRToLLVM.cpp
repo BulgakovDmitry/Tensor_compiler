@@ -45,15 +45,15 @@ LogicalResult MLIRToLLVM(MLIRContext &context,
 
     pm.addNestedPass<func::FuncOp>(createConvertElementwiseToLinalgPass());
 
-    bufferization::OneShotBufferizationOptions bufferizationOptions;
+    bufferization::OneShotBufferizePassOptions bufferizationOptions;
     bufferizationOptions.bufferizeFunctionBoundaries = true;
-    bufferizationOptions.setFunctionBoundaryTypeConversion(
-        bufferization::LayoutMapOption::IdentityLayoutMap);
+    bufferizationOptions.functionBoundaryTypeConversion =
+        bufferization::LayoutMapOption::IdentityLayoutMap;
 
     pm.addPass(bufferization::createOneShotBufferizePass(bufferizationOptions));
 
     pm.addNestedPass<func::FuncOp>(createConvertLinalgToLoopsPass());
-    pm.addPass(createConvertSCFToCFPass());
+    pm.addPass(createSCFToControlFlowPass());
 
     pm.addPass(createCanonicalizerPass());
     pm.addPass(createCSEPass());

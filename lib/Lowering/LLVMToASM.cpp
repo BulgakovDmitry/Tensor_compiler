@@ -30,11 +30,11 @@ LogicalResult generateAssembly(llvm::Module *llvmModule,
 
   std::string error;
 
-  std::string targetTripleStr = triple.empty() ? llvmModule->getTargetTriple() : triple;
-  llvm::Triple targetTriple(targetTripleStr);
+  llvm::Triple targetTriple =
+      triple.empty() ? llvmModule->getTargetTriple() : llvm::Triple(triple);
 
   const llvm::Target *target = llvm::TargetRegistry::lookupTarget(
-      targetTripleStr, error);
+      targetTriple, error);
   if (!target) {
     llvm::errs() << "Error: " << error << "\n";
     return failure();
@@ -44,7 +44,7 @@ LogicalResult generateAssembly(llvm::Module *llvmModule,
   auto RM = std::optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
 
   std::unique_ptr<llvm::TargetMachine> TM(
-      target->createTargetMachine(targetTripleStr,
+      target->createTargetMachine(targetTriple,
                                 /*CPU=*/"",
                                 /*Features=*/"",
                                 opt,
@@ -55,7 +55,7 @@ LogicalResult generateAssembly(llvm::Module *llvmModule,
   }
 
   llvmModule->setDataLayout(TM->createDataLayout());
-  llvmModule->setTargetTriple(targetTripleStr);
+  llvmModule->setTargetTriple(targetTriple);
 
   llvm::legacy::PassManager PM;
   llvm::CodeGenFileType fileType = llvm::CodeGenFileType::AssemblyFile;

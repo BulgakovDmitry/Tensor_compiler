@@ -93,6 +93,7 @@ target_link_libraries(${PROJECT_NAME}
         # Core MLIR
         MLIRIR
         MLIRSupport
+        MLIRRegisterAllExtensions
 
         # Dialects
         MLIRFuncDialect
@@ -140,10 +141,6 @@ target_link_libraries(${PROJECT_NAME}
         LLVMSupport
 )
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    ${LLVM_DEFINITIONS}
-)
-
 # -------------------------------------------------------------------
 # Runtime Shared Library (ASM + C wrapper)
 # -------------------------------------------------------------------
@@ -155,13 +152,14 @@ set(GENERATED_ASM     "${CMAKE_CURRENT_SOURCE_DIR}/model.s")
 add_custom_target(compile_model
     COMMAND ${CMAKE_BINARY_DIR}/tensor-compiler
             ${CMAKE_SOURCE_DIR}/models/resnet50.onnx
-            -emit=asm -o ${GENERATED_ASM}
+            -emit=asm
     DEPENDS ${PROJECT_NAME}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     VERBATIM
 )
 
 if(EXISTS "${GENERATED_ASM}")
-    add_library(tensor_model SHARED
+    add_library(tensor_model SHARED EXCLUDE_FROM_ALL
         ${RUNTIME_WRAPPER}
         ${GENERATED_ASM}
     )
@@ -182,7 +180,7 @@ if(EXISTS "${GENERATED_ASM}")
     target_link_libraries(tensor_model PRIVATE c)
     target_include_directories(tensor_model PUBLIC "${CMAKE_SOURCE_DIR}/include")
 
-    add_dependencies(tensor_model compile_model)
+    # add_dependencies(tensor_model compile_model)
 
 else()
     message(STATUS "Generated ASM not found at ${GENERATED_ASM}")

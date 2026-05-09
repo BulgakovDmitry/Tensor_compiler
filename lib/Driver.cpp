@@ -22,18 +22,26 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Arith/Transforms/BufferizableOpInterfaceImpl.h"
 #include "mlir/Dialect/Bufferization/IR/Bufferization.h"
+#include "mlir/Dialect/Bufferization/Transforms/FuncBufferizableOpInterfaceImpl.h"
 #include "mlir/Dialect/ControlFlow/IR/ControlFlow.h"
+#include "mlir/Dialect/ControlFlow/Transforms/BufferizableOpInterfaceImpl.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
+#include "mlir/Dialect/Linalg/Transforms/BufferizableOpInterfaceImpl.h"
 #include "mlir/Dialect/LLVMIR/LLVMDialect.h"
 #include "mlir/Dialect/Math/IR/Math.h"
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
 #include "mlir/Dialect/SCF/IR/SCF.h"
+#include "mlir/Dialect/SCF/Transforms/BufferizableOpInterfaceImpl.h"
 #include "mlir/Dialect/Tensor/IR/Tensor.h"
+#include "mlir/Dialect/Tensor/Transforms/BufferizableOpInterfaceImpl.h"
 #include "mlir/InitAllDialects.h"
 #include "mlir/Target/LLVMIR/Dialect/Builtin/BuiltinToLLVMIRTranslation.h"
 #include "mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h"
+
+#include "mlir/InitAllExtensions.h"
 
 // CLI arguments for controlling compilation
 namespace {
@@ -49,13 +57,7 @@ llvm::cl::opt<std::string> emitTarget(
     llvm::cl::init("asm")
 );
 
-/// TODO: Delete this option
-llvm::cl::opt<std::string> outputFilename(
-    "o",
-    llvm::cl::desc("Output filename (for assembly)"),
-    llvm::cl::value_desc("filename"),
-    llvm::cl::init("model.s")
-);
+constexpr const char *outputFilename = "model.s";
 
 llvm::cl::opt<std::string> targetTriple(
     "mtriple",
@@ -114,6 +116,14 @@ int driver(int argc, char *argv[]) {
     registry.insert<mlir::cf::ControlFlowDialect>();
     registry.insert<mlir::LLVM::LLVMDialect>();
     registry.insert<mlir::bufferization::BufferizationDialect>();
+    mlir::registerAllExtensions(registry);
+    mlir::arith::registerBufferizableOpInterfaceExternalModels(registry);
+    mlir::bufferization::func_ext::registerBufferizableOpInterfaceExternalModels(
+        registry);
+    mlir::cf::registerBufferizableOpInterfaceExternalModels(registry);
+    mlir::linalg::registerBufferizableOpInterfaceExternalModels(registry);
+    mlir::scf::registerBufferizableOpInterfaceExternalModels(registry);
+    mlir::tensor::registerBufferizableOpInterfaceExternalModels(registry);
     context.appendDialectRegistry(registry);
     context.loadAllAvailableDialects();
     mlir::registerBuiltinDialectTranslation(context);
@@ -152,7 +162,7 @@ int driver(int argc, char *argv[]) {
     if (emitTarget == "asm") {
         std::error_code ec;
         llvm::raw_fd_ostream asmStream(
-            outputFilename.getValue(),
+            outputFilename,
             ec,
             llvm::sys::fs::OF_None);
 
