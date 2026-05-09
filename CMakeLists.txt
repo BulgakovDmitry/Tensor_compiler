@@ -145,18 +145,48 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 )
 
 # -------------------------------------------------------------------
-# Tensor Driver library
+# Runtime Shared Library (ASM + C wrapper)
 # -------------------------------------------------------------------
-add_library(tensor_driver SHARED tensorDriver/lib/TensorDrvImpl.cpp)
+enable_language(ASM)
 
-target_include_directories(tensor_driver PUBLIC tensorDriver/include)
+set(RUNTIME_WRAPPER   "${CMAKE_CURRENT_SOURCE_DIR}/lib/Runtime/ModelRunner.c")
+set(GENERATED_ASM     "${CMAKE_CURRENT_SOURCE_DIR}/model.s")
 
-# -------------------------------------------------------------------
-# Inference App executable
-# -------------------------------------------------------------------
-add_executable(inference-app tools/inference-app.cpp)
+add_custom_target(compile_model
+    COMMAND ${CMAKE_BINARY_DIR}/tensor-compiler
+            ${CMAKE_SOURCE_DIR}/models/resnet50.onnx
+            -emit=asm -o ${GENERATED_ASM}
+    DEPENDS ${PROJECT_NAME}
+    VERBATIM
+)
 
-target_link_libraries(inference-app PRIVATE tensor_driver dl)
+if(EXISTS "${GENERATED_ASM}")
+    add_library(tensor_model SHARED
+        ${RUNTIME_WRAPPER}
+        ${GENERATED_ASM}
+    )
+
+    set_target_properties(tensor_model PROPERTIES
+        OUTPUT_NAME "tensor_model"
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+        POSITION_INDEPENDENT_CODE ON
+        C_VISIBILITY_PRESET default
+        ASM_VISIBILITY_PRESET hidden
+    )
+
+    target_compile_options(tensor_model PRIVATE
+        $<$<COMPILE_LANGUAGE:C>:-O3 -march=native -ffast-math>
+        $<$<COMPILE_LANGUAGE:ASM>:-O3>
+    )
+
+    target_link_libraries(tensor_model PRIVATE c)
+    target_include_directories(tensor_model PUBLIC "${CMAKE_SOURCE_DIR}/include")
+
+    add_dependencies(tensor_model compile_model)
+
+else()
+    message(STATUS "Generated ASM not found at ${GENERATED_ASM}")
+endif()
 
 # -------------------------------------------------------------------
 # Graph dump
