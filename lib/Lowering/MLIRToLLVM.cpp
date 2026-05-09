@@ -11,6 +11,7 @@
 #include "mlir/Dialect/Bufferization/Transforms/OneShotAnalysis.h"
 #include "mlir/Conversion/MemRefToLLVM/MemRefToLLVM.h"
 #include "mlir/Transforms/Passes.h"
+#include "mlir/Conversion/BufferizationToMemRef/BufferizationToMemRef.h"
 
 #include "mlir/Dialect/Linalg/Passes.h"
 #include "mlir/Dialect/SCF/Transforms/Passes.h"
@@ -45,21 +46,15 @@ LogicalResult MLIRToLLVM(MLIRContext &context,
 
     pm.addNestedPass<func::FuncOp>(createConvertElementwiseToLinalgPass());
 
-    pm.addPass(arith::createArithBufferizePass());
-    pm.addPass(func::createFuncBufferizePass());
-    pm.addNestedPass<func::FuncOp>(createLinalgBufferizePass());
-    pm.addNestedPass<func::FuncOp>(tensor::createTensorBufferizePass());
-
-    bufferization::OneShotBufferizationOptions bufferizationOptions;
+    bufferization::OneShotBufferizePassOptions bufferizationOptions;
     bufferizationOptions.bufferizeFunctionBoundaries = true;
-    bufferizationOptions.setFunctionBoundaryTypeConversion(
-        bufferization::LayoutMapOption::IdentityLayoutMap);
+    bufferizationOptions.functionBoundaryTypeConversion =
+        bufferization::LayoutMapOption::IdentityLayoutMap;
     pm.addPass(bufferization::createOneShotBufferizePass(bufferizationOptions));
-
-    pm.addPass(bufferization::createBufferResultsToOutParamsPass());
+    pm.addPass(createConvertBufferizationToMemRefPass());
 
     pm.addNestedPass<func::FuncOp>(createConvertLinalgToLoopsPass());
-    pm.addPass(createConvertSCFToCFPass());
+    pm.addPass(createSCFToControlFlowPass());
 
     pm.addPass(createCanonicalizerPass());
     pm.addPass(createCSEPass());

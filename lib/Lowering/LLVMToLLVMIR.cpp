@@ -1,4 +1,5 @@
 #include "Lowering/LLVMToLLVMIR.h"
+#include "llvm/IR/Module.h"
 #include "mlir/IR/BuiltinOps.h"
 #include "llvm/Support/raw_ostream.h"
 #include "mlir/Dialect/Bufferization/Transforms/Passes.h"
