@@ -3,6 +3,7 @@
 #include <string>
 #include "Codegen/Codegen.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
+#include "mlir/Dialect/Math/IR/Math.h"
 #include "mlir/Dialect/Tensor/IR/Tensor.h"
 
 namespace tensor_compiler {
@@ -67,6 +68,20 @@ int64_t getIntAttribute(const Node &node, const std::string &name,
     return *intValue;
 }
 
+float getFloatAttribute(const Node &node, const std::string &name,
+                        float defaultValue) {
+    const Attribute::AttrValue *value = getAttributeValue(node, name);
+    if (!value) {
+        return defaultValue;
+    }
+
+    const auto *floatValue = std::get_if<float>(value);
+    if (!floatValue) {
+        throw std::runtime_error("attribute '" + name + "' must be a float");
+    }
+    return *floatValue;
+}
+
 std::vector<int64_t> getIntVectorAttribute(
     const Node &node, const std::string &name,
     std::vector<int64_t> defaultValue) {
@@ -126,6 +141,20 @@ std::vector<mlir::Value> collectDynamicDims(mlir::OpBuilder &builder,
         }
     }
     return dynamicDims;
+}
+
+void checkBatchNormParamType(mlir::Value value, int64_t channels,
+                             const char *name) {
+    auto type = mlir::dyn_cast<mlir::RankedTensorType>(value.getType());
+    if (!type || type.getRank() != 1 || !type.getElementType().isF32()) {
+        throw std::runtime_error(std::string("BatchNormalization ") + name +
+                                 " must be a rank-1 f32 tensor");
+    }
+    if (!mlir::ShapedType::isDynamic(type.getShape()[0]) &&
+        type.getShape()[0] != channels) {
+        throw std::runtime_error(std::string("BatchNormalization ") + name +
+                                 " channel count mismatch");
+    }
 }
 
 } // namespace
@@ -309,6 +338,11 @@ void Codegen::genNode(
         return;
     }
 
+    if (opcode == "BatchNormalization") {
+        genBatchNormalizationNode(builder, loc, node, values);
+        return;
+    }
+
     throw std::runtime_error("unsupported opcode: " + opcode);
 }
 
@@ -471,17 +505,41 @@ void Codegen::genReluNode(
         throw std::runtime_error("Relu currently supports only f32 tensors");
     }
 
-    size_t elementCount = 1;
-    for (int64_t d : type.getShape()) {
-        elementCount *= static_cast<size_t>(d);
+    std::vector<mlir::Value> dynamicDims =
+        collectDynamicDims(builder, loc, input, type);
+    auto empty = builder.create<mlir::tensor::EmptyOp>(
+        loc, type, dynamicDims);
+
+    llvm::SmallVector<mlir::AffineExpr> exprs;
+    exprs.reserve(static_cast<size_t>(type.getRank()));
+    for (int64_t i = 0; i < type.getRank(); ++i) {
+        exprs.push_back(builder.getAffineDimExpr(i));
     }
+    auto map = mlir::AffineMap::get(type.getRank(), 0, exprs,
+                                    builder.getContext());
 
-    std::vector<float> zeros(elementCount, 0.0f);
-    auto zeroAttr = mlir::DenseElementsAttr::get(type, llvm::ArrayRef<float>(zeros));
-    auto zero = builder.create<mlir::arith::ConstantOp>(loc, type, zeroAttr);
+    llvm::SmallVector<mlir::utils::IteratorType> iteratorTypes(
+        static_cast<size_t>(type.getRank()),
+        mlir::utils::IteratorType::parallel);
 
-    auto maxOp = builder.create<mlir::arith::MaximumFOp>(loc, input, zero.getResult());
-    values[outName] = maxOp.getResult();
+    auto relu = builder.create<mlir::linalg::GenericOp>(
+        loc,
+        mlir::TypeRange{type},
+        mlir::ValueRange{input},
+        mlir::ValueRange{empty.getResult()},
+        llvm::ArrayRef<mlir::AffineMap>{map, map},
+        iteratorTypes,
+        [](mlir::OpBuilder &nestedBuilder, mlir::Location nestedLoc,
+           mlir::ValueRange args) {
+            auto zero = nestedBuilder.create<mlir::arith::ConstantOp>(
+                nestedLoc, nestedBuilder.getF32FloatAttr(0.0f));
+            auto max = nestedBuilder.create<mlir::arith::MaximumFOp>(
+                nestedLoc, args[0], zero.getResult());
+            nestedBuilder.create<mlir::linalg::YieldOp>(
+                nestedLoc, max.getResult());
+        });
+
+    values[outName] = relu.getResult(0);
 }
 
 void Codegen::genConvNode(
@@ -631,6 +689,106 @@ void Codegen::genConvNode(
         getI64VectorAttr(builder, dilations));
 
     values[outName] = conv.getResult(0);
+}
+
+void Codegen::genBatchNormalizationNode(
+    mlir::OpBuilder &builder,
+    mlir::Location loc,
+    const Node &node,
+    std::unordered_map<std::string, mlir::Value> &values) const {
+
+    if (node.inputs().size() != 5) {
+        throw std::runtime_error(
+            "BatchNormalization node must have exactly 5 inputs");
+    }
+    if (node.outputs().empty()) {
+        throw std::runtime_error(
+            "BatchNormalization node must have at least 1 output");
+    }
+    if (getIntAttribute(node, "training_mode", 0) != 0) {
+        throw std::runtime_error(
+            "BatchNormalization training_mode is not supported");
+    }
+
+    mlir::Value input = getBoundValue(values, node.inputs()[0],
+                                      "BatchNormalization");
+    mlir::Value scale = getBoundValue(values, node.inputs()[1],
+                                      "BatchNormalization");
+    mlir::Value bias = getBoundValue(values, node.inputs()[2],
+                                     "BatchNormalization");
+    mlir::Value mean = getBoundValue(values, node.inputs()[3],
+                                     "BatchNormalization");
+    mlir::Value var = getBoundValue(values, node.inputs()[4],
+                                    "BatchNormalization");
+
+    auto inputType =
+        mlir::dyn_cast<mlir::RankedTensorType>(input.getType());
+    if (!inputType || inputType.getRank() != 4 ||
+        !inputType.getElementType().isF32()) {
+        throw std::runtime_error(
+            "BatchNormalization supports only rank-4 f32 NCHW input");
+    }
+
+    int64_t channels =
+        checkedPositiveDim(inputType.getShape()[1], "BatchNormalization channels");
+    checkBatchNormParamType(scale, channels, "scale");
+    checkBatchNormParamType(bias, channels, "bias");
+    checkBatchNormParamType(mean, channels, "mean");
+    checkBatchNormParamType(var, channels, "var");
+
+    std::vector<mlir::Value> dynamicDims =
+        collectDynamicDims(builder, loc, input, inputType);
+    auto empty = builder.create<mlir::tensor::EmptyOp>(
+        loc, inputType, dynamicDims);
+
+    auto *ctx = builder.getContext();
+    auto n = builder.getAffineDimExpr(0);
+    auto c = builder.getAffineDimExpr(1);
+    auto h = builder.getAffineDimExpr(2);
+    auto w = builder.getAffineDimExpr(3);
+    auto tensorMap = mlir::AffineMap::get(4, 0, {n, c, h, w}, ctx);
+    auto channelMap = mlir::AffineMap::get(4, 0, {c}, ctx);
+
+    llvm::SmallVector<mlir::AffineMap> indexingMaps = {
+        tensorMap, channelMap, channelMap, channelMap, channelMap, tensorMap};
+    llvm::SmallVector<mlir::utils::IteratorType> iteratorTypes(
+        4, mlir::utils::IteratorType::parallel);
+
+    float epsilon = getFloatAttribute(node, "epsilon", 1.0e-5f);
+    auto generic = builder.create<mlir::linalg::GenericOp>(
+        loc,
+        mlir::TypeRange{inputType},
+        mlir::ValueRange{input, scale, bias, mean, var},
+        mlir::ValueRange{empty.getResult()},
+        indexingMaps,
+        iteratorTypes,
+        [&](mlir::OpBuilder &nestedBuilder, mlir::Location nestedLoc,
+            mlir::ValueRange args) {
+            mlir::Value x = args[0];
+            mlir::Value scaleValue = args[1];
+            mlir::Value biasValue = args[2];
+            mlir::Value meanValue = args[3];
+            mlir::Value varValue = args[4];
+
+            auto eps = nestedBuilder.create<mlir::arith::ConstantOp>(
+                nestedLoc, nestedBuilder.getF32FloatAttr(epsilon));
+            auto centered = nestedBuilder.create<mlir::arith::SubFOp>(
+                nestedLoc, x, meanValue);
+            auto varWithEps = nestedBuilder.create<mlir::arith::AddFOp>(
+                nestedLoc, varValue, eps.getResult());
+            auto denom = nestedBuilder.create<mlir::math::SqrtOp>(
+                nestedLoc, varWithEps.getResult());
+            auto normalized = nestedBuilder.create<mlir::arith::DivFOp>(
+                nestedLoc, centered.getResult(), denom.getResult());
+            auto scaled = nestedBuilder.create<mlir::arith::MulFOp>(
+                nestedLoc, normalized.getResult(), scaleValue);
+            auto shifted = nestedBuilder.create<mlir::arith::AddFOp>(
+                nestedLoc, scaled.getResult(), biasValue);
+            nestedBuilder.create<mlir::linalg::YieldOp>(
+                nestedLoc, shifted.getResult());
+        });
+
+    values[node.outputs()[0]] = generic.getResult(0);
 }
 
 } // namespace tensor_compiler
