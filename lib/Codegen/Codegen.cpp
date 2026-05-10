@@ -392,6 +392,11 @@ void Codegen::genNode(
         return;
     }
 
+    if (opcode == "MatMul") {
+        genMatMulNode(builder, loc, node, values);
+        return;
+    }
+
     throw std::runtime_error("unsupported opcode: " + opcode);
 }
 
@@ -1308,6 +1313,69 @@ void Codegen::genSqueezeNode(
     auto squeeze = builder.create<mlir::tensor::CollapseShapeOp>(
         loc, resultType, input, reassociation);
     values[node.outputs()[0]] = squeeze.getResult();
+}
+
+void Codegen::genMatMulNode(
+    mlir::OpBuilder &builder,
+    mlir::Location loc,
+    const Node &node,
+    std::unordered_map<std::string, mlir::Value> &values) const {
+
+    checkBinaryNodeShape(node, "MatMul");
+
+    mlir::Value lhs = getBoundValue(values, node.inputs()[0], "MatMul");
+    mlir::Value rhs = getBoundValue(values, node.inputs()[1], "MatMul");
+
+    auto lhsType = mlir::dyn_cast<mlir::RankedTensorType>(lhs.getType());
+    auto rhsType = mlir::dyn_cast<mlir::RankedTensorType>(rhs.getType());
+    if (!lhsType || !rhsType) {
+        throw std::runtime_error("MatMul expects ranked tensor inputs");
+    }
+    if (lhsType.getRank() != 2 || rhsType.getRank() != 2) {
+        throw std::runtime_error(
+            "MatMul currently supports only rank-2 tensor inputs");
+    }
+    if (!lhsType.getElementType().isF32() || !rhsType.getElementType().isF32()) {
+        throw std::runtime_error("MatMul currently supports only f32 tensors");
+    }
+    if (lhsType.getElementType() != rhsType.getElementType()) {
+        throw std::runtime_error("MatMul input element types must match");
+    }
+
+    int64_t lhsK = lhsType.getShape()[1];
+    int64_t rhsK = rhsType.getShape()[0];
+    if (!mlir::ShapedType::isDynamic(lhsK) &&
+        !mlir::ShapedType::isDynamic(rhsK) && lhsK != rhsK) {
+        throw std::runtime_error("MatMul reduction dimension mismatch");
+    }
+
+    std::vector<int64_t> resultShape = {
+        lhsType.getShape()[0],
+        rhsType.getShape()[1],
+    };
+    auto resultType = mlir::RankedTensorType::get(
+        resultShape, lhsType.getElementType());
+
+    std::vector<mlir::Value> dynamicDims;
+    if (mlir::ShapedType::isDynamic(resultShape[0])) {
+        dynamicDims.push_back(builder.create<mlir::tensor::DimOp>(loc, lhs, 0));
+    }
+    if (mlir::ShapedType::isDynamic(resultShape[1])) {
+        dynamicDims.push_back(builder.create<mlir::tensor::DimOp>(loc, rhs, 1));
+    }
+
+    auto empty = builder.create<mlir::tensor::EmptyOp>(
+        loc, resultShape, lhsType.getElementType(), dynamicDims);
+    auto zero = builder.create<mlir::arith::ConstantOp>(
+        loc, builder.getF32FloatAttr(0.0f));
+    auto init = builder.create<mlir::linalg::FillOp>(
+        loc, mlir::TypeRange{resultType}, mlir::ValueRange{zero.getResult()},
+        mlir::ValueRange{empty.getResult()});
+    auto matmul = builder.create<mlir::linalg::MatmulOp>(
+        loc, mlir::TypeRange{resultType}, mlir::ValueRange{lhs, rhs},
+        mlir::ValueRange{init.getResult(0)});
+
+    values[node.outputs()[0]] = matmul.getResult(0);
 }
 
 } // namespace tensor_compiler
