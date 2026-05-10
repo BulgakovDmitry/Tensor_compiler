@@ -116,7 +116,7 @@ class ResNetPredictor:
         x_ptr = x_aligned.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
         out_ptr = out.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 
-        assert x_aligned.ctypes.data % 64 == 0, f"Input not aligned: {x.ctypes.data % 64}"
+        assert x_aligned.ctypes.data % 64 == 0, f"Input not aligned: {x_aligned.ctypes.data % 64}"
         assert out.ctypes.data % 64 == 0, f"Output not aligned: {out.ctypes.data % 64}"
 
         for _ in range(warmup):
