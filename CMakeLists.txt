@@ -100,7 +100,6 @@ target_link_libraries(${PROJECT_NAME}
         # Core MLIR
         MLIRIR
         MLIRSupport
-        MLIRRegisterAllExtensions
 
         # Dialects
         MLIRFuncDialect
@@ -113,8 +112,13 @@ target_link_libraries(${PROJECT_NAME}
         MLIRControlFlowDialect
         MLIRLLVMDialect
         MLIRBufferizationDialect
+        MLIRArithTransforms
         MLIRBufferizationTransforms
         MLIRBufferizationToMemRef
+        MLIRControlFlowTransforms
+        MLIRFuncTransforms
+        MLIRSCFTransforms
+        MLIRTensorTransforms
 
         # Conversions
         MLIRPass

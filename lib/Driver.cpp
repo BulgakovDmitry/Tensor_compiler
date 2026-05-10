@@ -41,8 +41,6 @@
 #include "mlir/Target/LLVMIR/Dialect/Builtin/BuiltinToLLVMIRTranslation.h"
 #include "mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h"
 
-#include "mlir/InitAllExtensions.h"
-
 // CLI arguments for controlling compilation
 namespace {
 
@@ -116,7 +114,6 @@ int driver(int argc, char *argv[]) {
     registry.insert<mlir::cf::ControlFlowDialect>();
     registry.insert<mlir::LLVM::LLVMDialect>();
     registry.insert<mlir::bufferization::BufferizationDialect>();
-    mlir::registerAllExtensions(registry);
     mlir::arith::registerBufferizableOpInterfaceExternalModels(registry);
     mlir::bufferization::func_ext::registerBufferizableOpInterfaceExternalModels(
         registry);
