@@ -54,6 +54,7 @@ LogicalResult MLIRToLLVM(MLIRContext &context,
 
     pm.addNestedPass<func::FuncOp>(createConvertLinalgToLoopsPass());
     pm.addPass(createSCFToControlFlowPass());
+    pm.addPass(createLowerAffinePass());
 
     pm.addPass(createCanonicalizerPass());
     pm.addPass(createCSEPass());

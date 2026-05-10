@@ -113,6 +113,7 @@ target_link_libraries(${PROJECT_NAME}
         MLIRPass
         MLIRTransforms
         MLIRFuncToLLVM
+        MLIRAffineToStandard
         MLIRArithToLLVM
         MLIRMemRefToLLVM
         MLIRControlFlowToLLVM

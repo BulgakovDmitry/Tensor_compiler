@@ -6,40 +6,42 @@
 	.type	tensorCompForwardImpl,@function
 tensorCompForwardImpl:
 	.cfi_startproc
-	pushq	%r15
-	.cfi_def_cfa_offset 16
 	pushq	%r14
-	.cfi_def_cfa_offset 24
+	.cfi_def_cfa_offset 16
 	pushq	%rbx
-	.cfi_def_cfa_offset 32
-	.cfi_offset %rbx, -32
-	.cfi_offset %r14, -24
-	.cfi_offset %r15, -16
+	.cfi_def_cfa_offset 24
+	.cfi_offset %rbx, -24
+	.cfi_offset %r14, -16
 	movq	%rdi, %rax
-	movq	56(%rsp), %r11
-	movq	40(%rsp), %rdi
-	movq	32(%rsp), %r10
-	xorl	%ebx, %ebx
-	movq	%rdx, %r14
+	movq	32(%rsp), %rdi
+	movq	24(%rsp), %r10
+	xorl	%r11d, %r11d
+	xorps	%xmm0, %xmm0
+	movq	%rdx, %rbx
 	jmp	.LBB0_1
 	.p2align	4
 .LBB0_5:
-	incq	%rbx
-	addq	$8, %r11
-	addq	$8, %r14
+	incq	%r11
+	addq	$8, %rbx
 .LBB0_1:
-	cmpq	$1, %rbx
+	testq	%r11, %r11
 	jg	.LBB0_6
-	xorl	%r15d, %r15d
-	cmpq	$1, %r15
+	xorl	%r14d, %r14d
+	cmpq	$1, %r14
 	jg	.LBB0_5
 	.p2align	4
 .LBB0_4:
-	movss	(%r14,%r15,4), %xmm0
-	mulss	(%r11,%r15,4), %xmm0
-	movss	%xmm0, (%r14,%r15,4)
-	incq	%r15
-	cmpq	$1, %r15
+	movss	(%rbx,%r14,4), %xmm1
+	movaps	%xmm1, %xmm2
+	cmpunordss	%xmm1, %xmm2
+	movaps	%xmm2, %xmm3
+	andps	%xmm1, %xmm3
+	maxss	%xmm0, %xmm1
+	andnps	%xmm1, %xmm2
+	orps	%xmm3, %xmm2
+	movss	%xmm2, (%rbx,%r14,4)
+	incq	%r14
+	cmpq	$1, %r14
 	jle	.LBB0_4
 	jmp	.LBB0_5
 .LBB0_6:
@@ -51,14 +53,19 @@ tensorCompForwardImpl:
 	movq	%r10, 40(%rax)
 	movq	%rdi, 48(%rax)
 	popq	%rbx
-	.cfi_def_cfa_offset 24
-	popq	%r14
 	.cfi_def_cfa_offset 16
-	popq	%r15
+	popq	%r14
 	.cfi_def_cfa_offset 8
 	retq
 .Lfunc_end0:
 	.size	tensorCompForwardImpl, .Lfunc_end0-tensorCompForwardImpl
 	.cfi_endproc
+
+	.type	.L__constant_1x2xf32,@object
+	.section	.rodata,"a",@progbits
+	.p2align	6, 0x0
+.L__constant_1x2xf32:
+	.zero	8
+	.size	.L__constant_1x2xf32, 8
 
 	.section	".note.GNU-stack","",@progbits
