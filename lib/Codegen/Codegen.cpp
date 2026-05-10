@@ -1,6 +1,7 @@
 #include <unordered_map>
 #include <vector>
 #include <string>
+#include <limits>
 #include "Codegen/Codegen.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
 #include "mlir/Dialect/Math/IR/Math.h"
@@ -340,6 +341,11 @@ void Codegen::genNode(
 
     if (opcode == "BatchNormalization") {
         genBatchNormalizationNode(builder, loc, node, values);
+        return;
+    }
+
+    if (opcode == "MaxPool") {
+        genMaxPoolNode(builder, loc, node, values);
         return;
     }
 
@@ -789,6 +795,131 @@ void Codegen::genBatchNormalizationNode(
         });
 
     values[node.outputs()[0]] = generic.getResult(0);
+}
+
+void Codegen::genMaxPoolNode(
+    mlir::OpBuilder &builder,
+    mlir::Location loc,
+    const Node &node,
+    std::unordered_map<std::string, mlir::Value> &values) const {
+
+    if (node.inputs().size() != 1) {
+        throw std::runtime_error("MaxPool node must have exactly 1 input");
+    }
+    if (node.outputs().empty()) {
+        throw std::runtime_error("MaxPool node must have at least 1 output");
+    }
+    if (node.outputs().size() > 1) {
+        throw std::runtime_error("MaxPool indices output is not supported yet");
+    }
+    if (getIntAttribute(node, "ceil_mode", 0) != 0) {
+        throw std::runtime_error("MaxPool ceil_mode is not supported yet");
+    }
+
+    mlir::Value input = getBoundValue(values, node.inputs()[0], "MaxPool");
+    auto inputType =
+        mlir::dyn_cast<mlir::RankedTensorType>(input.getType());
+    if (!inputType || inputType.getRank() != 4 ||
+        !inputType.getElementType().isF32()) {
+        throw std::runtime_error("MaxPool supports only rank-4 f32 NCHW input");
+    }
+
+    auto kernel = getIntVectorAttribute(node, "kernel_shape", {});
+    auto strides = getIntVectorAttribute(node, "strides", {1, 1});
+    auto pads = getIntVectorAttribute(node, "pads", {0, 0, 0, 0});
+    auto dilations = getIntVectorAttribute(node, "dilations", {1, 1});
+    requireSize(kernel, 2, "kernel_shape");
+    requireSize(strides, 2, "strides");
+    requireSize(pads, 4, "pads");
+    requireSize(dilations, 2, "dilations");
+
+    int64_t kernelH = checkedPositiveDim(kernel[0], "MaxPool kernel height");
+    int64_t kernelW = checkedPositiveDim(kernel[1], "MaxPool kernel width");
+    int64_t strideH = checkedPositiveDim(strides[0], "MaxPool stride height");
+    int64_t strideW = checkedPositiveDim(strides[1], "MaxPool stride width");
+    int64_t dilationH =
+        checkedPositiveDim(dilations[0], "MaxPool dilation height");
+    int64_t dilationW =
+        checkedPositiveDim(dilations[1], "MaxPool dilation width");
+
+    const auto inputShape = inputType.getShape();
+    int64_t channels = checkedPositiveDim(inputShape[1], "MaxPool channels");
+    int64_t inputH = checkedPositiveDim(inputShape[2], "MaxPool input height");
+    int64_t inputW = checkedPositiveDim(inputShape[3], "MaxPool input width");
+
+    int64_t paddedH = inputH + pads[0] + pads[2];
+    int64_t paddedW = inputW + pads[1] + pads[3];
+    int64_t effectiveKernelH = dilationH * (kernelH - 1) + 1;
+    int64_t effectiveKernelW = dilationW * (kernelW - 1) + 1;
+    int64_t outH = (paddedH - effectiveKernelH) / strideH + 1;
+    int64_t outW = (paddedW - effectiveKernelW) / strideW + 1;
+    if (outH <= 0 || outW <= 0) {
+        throw std::runtime_error("MaxPool computed non-positive output shape");
+    }
+
+    mlir::Value poolInput = input;
+    if (hasPadding(pads)) {
+        std::vector<int64_t> paddedShape(inputShape.begin(), inputShape.end());
+        paddedShape[2] = paddedH;
+        paddedShape[3] = paddedW;
+        auto paddedType = mlir::RankedTensorType::get(
+            paddedShape, inputType.getElementType());
+
+        auto negInf = builder.create<mlir::arith::ConstantOp>(
+            loc, builder.getF32FloatAttr(
+                     -std::numeric_limits<float>::infinity()));
+        std::vector<mlir::OpFoldResult> low = {
+            builder.getIndexAttr(0),
+            builder.getIndexAttr(0),
+            builder.getIndexAttr(pads[0]),
+            builder.getIndexAttr(pads[1])};
+        std::vector<mlir::OpFoldResult> high = {
+            builder.getIndexAttr(0),
+            builder.getIndexAttr(0),
+            builder.getIndexAttr(pads[2]),
+            builder.getIndexAttr(pads[3])};
+        auto padOp = builder.create<mlir::tensor::PadOp>(
+            loc,
+            paddedType,
+            input,
+            low,
+            high,
+            negInf.getResult(),
+            false);
+        poolInput = padOp.getResult();
+    }
+
+    std::vector<int64_t> outShape = {
+        inputShape[0], channels, outH, outW};
+    auto outType = mlir::RankedTensorType::get(
+        outShape, inputType.getElementType());
+
+    std::vector<mlir::Value> dynamicDims =
+        collectDynamicDims(builder, loc, input, outType);
+    auto window = builder.create<mlir::tensor::EmptyOp>(
+        loc,
+        mlir::RankedTensorType::get({kernelH, kernelW},
+                                    inputType.getElementType()),
+        mlir::ValueRange{});
+    auto empty = builder.create<mlir::tensor::EmptyOp>(
+        loc, outType, dynamicDims);
+    auto negInf = builder.create<mlir::arith::ConstantOp>(
+        loc, builder.getF32FloatAttr(-std::numeric_limits<float>::infinity()));
+    auto filled = builder.create<mlir::linalg::FillOp>(
+        loc,
+        mlir::TypeRange{outType},
+        mlir::ValueRange{negInf.getResult()},
+        mlir::ValueRange{empty.getResult()});
+
+    auto pool = builder.create<mlir::linalg::PoolingNchwMaxOp>(
+        loc,
+        mlir::TypeRange{outType},
+        mlir::ValueRange{poolInput, window.getResult()},
+        mlir::ValueRange{filled.getResult(0)},
+        getI64VectorAttr(builder, strides),
+        getI64VectorAttr(builder, dilations));
+
+    values[node.outputs()[0]] = pool.getResult(0);
 }
 
 } // namespace tensor_compiler
