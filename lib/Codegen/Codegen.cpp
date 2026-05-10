@@ -354,6 +354,11 @@ void Codegen::genNode(
         return;
     }
 
+    if (opcode == "Reshape") {
+        genReshapeNode(builder, loc, node, values);
+        return;
+    }
+
     throw std::runtime_error("unsupported opcode: " + opcode);
 }
 
@@ -1084,6 +1089,49 @@ void Codegen::genReduceMeanNode(
         });
 
     values[node.outputs()[0]] = mean.getResult(0);
+}
+
+void Codegen::genReshapeNode(
+    mlir::OpBuilder &builder,
+    mlir::Location loc,
+    const Node &node,
+    std::unordered_map<std::string, mlir::Value> &values) const {
+
+    checkBinaryNodeShape(node, "Reshape");
+
+    mlir::Value input = getBoundValue(values, node.inputs()[0], "Reshape");
+    mlir::Value shape = getBoundValue(values, node.inputs()[1], "Reshape");
+
+    auto inputType = mlir::dyn_cast<mlir::TensorType>(input.getType());
+    auto shapeType =
+        mlir::dyn_cast<mlir::RankedTensorType>(shape.getType());
+    if (!inputType) {
+        throw std::runtime_error("Reshape expects tensor input");
+    }
+    if (!shapeType || shapeType.getRank() != 1 ||
+        (!shapeType.getElementType().isSignlessInteger() &&
+         !shapeType.getElementType().isIndex())) {
+        throw std::runtime_error(
+            "Reshape shape input must be a rank-1 integer tensor");
+    }
+
+    mlir::TensorType resultType;
+    int64_t resultRank = shapeType.getShape()[0];
+    if (mlir::ShapedType::isDynamic(resultRank)) {
+        resultType = mlir::UnrankedTensorType::get(inputType.getElementType());
+    } else {
+        if (resultRank < 0) {
+            throw std::runtime_error("Reshape result rank must be non-negative");
+        }
+        std::vector<int64_t> resultShape(
+            static_cast<size_t>(resultRank), mlir::ShapedType::kDynamic);
+        resultType = mlir::RankedTensorType::get(
+            resultShape, inputType.getElementType());
+    }
+
+    auto reshape = builder.create<mlir::tensor::ReshapeOp>(
+        loc, resultType, input, shape);
+    values[node.outputs()[0]] = reshape.getResult();
 }
 
 } // namespace tensor_compiler

@@ -14,6 +14,13 @@ find_package(Protobuf REQUIRED)
 find_package(Threads REQUIRED)
 find_package(MLIR REQUIRED CONFIG)
 
+message(STATUS "LLVM version: ${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}")
+message(STATUS "LLVM source dir: ${LLVM_DIR}")
+message(STATUS ">>> MLIR_DIR resolved: ${MLIR_DIR}")
+message(STATUS ">>> LLVM_DIR resolved: ${LLVM_DIR}")
+message(STATUS ">>> MLIR_INCLUDE_DIRS: ${MLIR_INCLUDE_DIRS}")
+message(STATUS ">>> LLVM_INCLUDE_DIRS: ${LLVM_INCLUDE_DIRS}")
+
 list(APPEND CMAKE_MODULE_PATH "${MLIR_CMAKE_DIR}")
 list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
 
