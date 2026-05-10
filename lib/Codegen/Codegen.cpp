@@ -397,6 +397,11 @@ void Codegen::genNode(
         return;
     }
 
+    if (opcode == "Softmax") {
+        genSoftmaxNode(builder, loc, node, values);
+        return;
+    }
+
     throw std::runtime_error("unsupported opcode: " + opcode);
 }
 
@@ -1376,6 +1381,43 @@ void Codegen::genMatMulNode(
         mlir::ValueRange{init.getResult(0)});
 
     values[node.outputs()[0]] = matmul.getResult(0);
+}
+
+void Codegen::genSoftmaxNode(
+    mlir::OpBuilder &builder,
+    mlir::Location loc,
+    const Node &node,
+    std::unordered_map<std::string, mlir::Value> &values) const {
+
+    checkUnaryNodeShape(node, "Softmax");
+
+    mlir::Value input = getBoundValue(values, node.inputs()[0], "Softmax");
+    auto inputType = mlir::dyn_cast<mlir::RankedTensorType>(input.getType());
+    if (!inputType) {
+        throw std::runtime_error("Softmax expects ranked tensor input");
+    }
+    if (!inputType.getElementType().isF32()) {
+        throw std::runtime_error("Softmax currently supports only f32 tensors");
+    }
+
+    int64_t rank = inputType.getRank();
+    int64_t axis = getIntAttribute(node, "axis", -1);
+    if (axis < 0) {
+        axis += rank;
+    }
+    if (axis < 0 || axis >= rank) {
+        throw std::runtime_error("Softmax axis is out of range");
+    }
+
+    std::vector<mlir::Value> dynamicDims =
+        collectDynamicDims(builder, loc, input, inputType);
+    auto empty = builder.create<mlir::tensor::EmptyOp>(
+        loc, inputType.getShape(), inputType.getElementType(), dynamicDims);
+    auto softmax = builder.create<mlir::linalg::SoftmaxOp>(
+        loc, mlir::TypeRange{inputType}, input, empty.getResult(),
+        static_cast<uint64_t>(axis));
+
+    values[node.outputs()[0]] = *softmax.getResult().begin();
 }
 
 } // namespace tensor_compiler
