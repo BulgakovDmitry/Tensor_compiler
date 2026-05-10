@@ -118,6 +118,7 @@ target_link_libraries(${PROJECT_NAME}
         MLIRControlFlowTransforms
         MLIRFuncTransforms
         MLIRSCFTransforms
+        MLIRTensorInferTypeOpInterfaceImpl
         MLIRTensorTransforms
 
         # Conversions
@@ -126,6 +127,7 @@ target_link_libraries(${PROJECT_NAME}
         MLIRFuncToLLVM
         MLIRAffineToStandard
         MLIRArithToLLVM
+        MLIRIndexToLLVM
         MLIRMemRefToLLVM
         MLIRControlFlowToLLVM
         MLIRMathToLLVM

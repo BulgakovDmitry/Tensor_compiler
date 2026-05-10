@@ -115,9 +115,13 @@ private:
   genMatMulNode(mlir::OpBuilder &builder, mlir::Location loc, const Node &node,
                 std::unordered_map<std::string, mlir::Value> &values) const;
 
-  void
-  genSoftmaxNode(mlir::OpBuilder &builder, mlir::Location loc, const Node &node,
-                 std::unordered_map<std::string, mlir::Value> &values) const;
+  void genSoftmaxNode(mlir::OpBuilder &builder, mlir::Location loc,
+                      const Node &node,
+                      std::unordered_map<std::string, mlir::Value> &values) const;
+
+  void genArgMaxNode(mlir::OpBuilder &builder, mlir::Location loc,
+                     const Node &node,
+                     std::unordered_map<std::string, mlir::Value> &values) const;
 };
 
 } // namespace tensor_compiler

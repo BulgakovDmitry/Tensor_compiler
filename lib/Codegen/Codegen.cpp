@@ -402,6 +402,11 @@ void Codegen::genNode(
         return;
     }
 
+    if (opcode == "ArgMax") {
+        genArgMaxNode(builder, loc, node, values);
+        return;
+    }
+
     throw std::runtime_error("unsupported opcode: " + opcode);
 }
 
@@ -438,6 +443,70 @@ void Codegen::genAddNode(
 
     mlir::Value lhs = getBoundValue(values, lhsName, "Add");
     mlir::Value rhs = getBoundValue(values, rhsName, "Add");
+
+    auto lhsType = mlir::dyn_cast<mlir::RankedTensorType>(lhs.getType());
+    auto rhsType = mlir::dyn_cast<mlir::RankedTensorType>(rhs.getType());
+    if (lhsType && rhsType && lhsType != rhsType) {
+        mlir::Value data = lhs;
+        mlir::Value bias = rhs;
+        auto dataType = lhsType;
+        auto biasType = rhsType;
+        if (lhsType.getRank() == 1 && rhsType.getRank() > 1) {
+            data = rhs;
+            bias = lhs;
+            dataType = rhsType;
+            biasType = lhsType;
+        }
+
+        if (biasType.getRank() != 1 || dataType.getRank() < 2 ||
+            dataType.getElementType() != biasType.getElementType()) {
+            throw std::runtime_error("Add unsupported broadcast shape");
+        }
+
+        int64_t dataLastDim = dataType.getShape().back();
+        int64_t biasDim = biasType.getShape()[0];
+        if (!mlir::ShapedType::isDynamic(dataLastDim) &&
+            !mlir::ShapedType::isDynamic(biasDim) && dataLastDim != biasDim) {
+            throw std::runtime_error("Add broadcast dimension mismatch");
+        }
+
+        std::vector<mlir::Value> dynamicDims =
+            collectDynamicDims(builder, loc, data, dataType);
+        auto empty = builder.create<mlir::tensor::EmptyOp>(
+            loc, dataType.getShape(), dataType.getElementType(), dynamicDims);
+
+        llvm::SmallVector<mlir::AffineExpr> identityExprs;
+        identityExprs.reserve(static_cast<size_t>(dataType.getRank()));
+        for (int64_t i = 0; i < dataType.getRank(); ++i) {
+            identityExprs.push_back(builder.getAffineDimExpr(i));
+        }
+        auto identityMap = mlir::AffineMap::get(
+            dataType.getRank(), 0, identityExprs, builder.getContext());
+        auto biasMap = mlir::AffineMap::get(
+            dataType.getRank(), 0,
+            {builder.getAffineDimExpr(dataType.getRank() - 1)},
+            builder.getContext());
+        llvm::SmallVector<mlir::utils::IteratorType> iteratorTypes(
+            static_cast<size_t>(dataType.getRank()),
+            mlir::utils::IteratorType::parallel);
+
+        auto add = builder.create<mlir::linalg::GenericOp>(
+            loc,
+            mlir::TypeRange{dataType},
+            mlir::ValueRange{data, bias},
+            mlir::ValueRange{empty.getResult()},
+            llvm::ArrayRef<mlir::AffineMap>{identityMap, biasMap, identityMap},
+            iteratorTypes,
+            [](mlir::OpBuilder &nestedBuilder, mlir::Location nestedLoc,
+               mlir::ValueRange args) {
+                auto sum = nestedBuilder.create<mlir::arith::AddFOp>(
+                    nestedLoc, args[0], args[1]);
+                nestedBuilder.create<mlir::linalg::YieldOp>(
+                    nestedLoc, sum.getResult());
+            });
+        values[outName] = add.getResult(0);
+        return;
+    }
 
     auto addOp = builder.create<mlir::arith::AddFOp>(loc, lhs, rhs);
     values[outName] = addOp.getResult();
@@ -1409,15 +1478,256 @@ void Codegen::genSoftmaxNode(
         throw std::runtime_error("Softmax axis is out of range");
     }
 
+    if (inputType.getRank() != 2 || axis != 1) {
+        throw std::runtime_error(
+            "Softmax currently supports only rank-2 tensors along axis 1");
+    }
+
+    std::vector<int64_t> reducedShape = {inputType.getShape()[0]};
+    auto reducedType = mlir::RankedTensorType::get(
+        reducedShape, inputType.getElementType());
+    std::vector<mlir::Value> reducedDynamicDims;
+    if (mlir::ShapedType::isDynamic(reducedShape[0])) {
+        reducedDynamicDims.push_back(
+            builder.create<mlir::tensor::DimOp>(loc, input, 0));
+    }
+
+    auto ctx = builder.getContext();
+    auto d0 = builder.getAffineDimExpr(0);
+    auto d1 = builder.getAffineDimExpr(1);
+    auto inputMap = mlir::AffineMap::get(2, 0, {d0, d1}, ctx);
+    auto rowMap = mlir::AffineMap::get(2, 0, {d0}, ctx);
+    llvm::SmallVector<mlir::utils::IteratorType> reduceLastIterators = {
+        mlir::utils::IteratorType::parallel,
+        mlir::utils::IteratorType::reduction,
+    };
+
+    auto negInf = builder.create<mlir::arith::ConstantOp>(
+        loc, builder.getF32FloatAttr(-std::numeric_limits<float>::infinity()));
+    auto maxEmpty = builder.create<mlir::tensor::EmptyOp>(
+        loc, reducedShape, inputType.getElementType(), reducedDynamicDims);
+    auto maxInit = builder.create<mlir::linalg::FillOp>(
+        loc, mlir::TypeRange{reducedType}, mlir::ValueRange{negInf.getResult()},
+        mlir::ValueRange{maxEmpty.getResult()});
+    auto rowMax = builder.create<mlir::linalg::GenericOp>(
+        loc, mlir::TypeRange{reducedType}, mlir::ValueRange{input},
+        mlir::ValueRange{maxInit.getResult(0)},
+        llvm::ArrayRef<mlir::AffineMap>{inputMap, rowMap},
+        reduceLastIterators,
+        [](mlir::OpBuilder &nestedBuilder, mlir::Location nestedLoc,
+           mlir::ValueRange args) {
+            auto max = nestedBuilder.create<mlir::arith::MaximumFOp>(
+                nestedLoc, args[0], args[1]);
+            nestedBuilder.create<mlir::linalg::YieldOp>(
+                nestedLoc, max.getResult());
+        });
+
     std::vector<mlir::Value> dynamicDims =
         collectDynamicDims(builder, loc, input, inputType);
-    auto empty = builder.create<mlir::tensor::EmptyOp>(
+    auto expEmpty = builder.create<mlir::tensor::EmptyOp>(
         loc, inputType.getShape(), inputType.getElementType(), dynamicDims);
-    auto softmax = builder.create<mlir::linalg::SoftmaxOp>(
-        loc, mlir::TypeRange{inputType}, input, empty.getResult(),
-        static_cast<uint64_t>(axis));
+    llvm::SmallVector<mlir::utils::IteratorType> parallelIterators(
+        static_cast<size_t>(inputType.getRank()),
+        mlir::utils::IteratorType::parallel);
+    auto expValues = builder.create<mlir::linalg::GenericOp>(
+        loc, mlir::TypeRange{inputType},
+        mlir::ValueRange{input, rowMax.getResult(0)},
+        mlir::ValueRange{expEmpty.getResult()},
+        llvm::ArrayRef<mlir::AffineMap>{inputMap, rowMap, inputMap},
+        parallelIterators,
+        [](mlir::OpBuilder &nestedBuilder, mlir::Location nestedLoc,
+           mlir::ValueRange args) {
+            auto shifted = nestedBuilder.create<mlir::arith::SubFOp>(
+                nestedLoc, args[0], args[1]);
+            auto exp = nestedBuilder.create<mlir::math::ExpOp>(
+                nestedLoc, shifted.getResult());
+            nestedBuilder.create<mlir::linalg::YieldOp>(
+                nestedLoc, exp.getResult());
+        });
 
-    values[node.outputs()[0]] = *softmax.getResult().begin();
+    auto zero = builder.create<mlir::arith::ConstantOp>(
+        loc, builder.getF32FloatAttr(0.0f));
+    auto sumEmpty = builder.create<mlir::tensor::EmptyOp>(
+        loc, reducedShape, inputType.getElementType(), reducedDynamicDims);
+    auto sumInit = builder.create<mlir::linalg::FillOp>(
+        loc, mlir::TypeRange{reducedType}, mlir::ValueRange{zero.getResult()},
+        mlir::ValueRange{sumEmpty.getResult()});
+    auto rowSum = builder.create<mlir::linalg::GenericOp>(
+        loc, mlir::TypeRange{reducedType}, mlir::ValueRange{expValues.getResult(0)},
+        mlir::ValueRange{sumInit.getResult(0)},
+        llvm::ArrayRef<mlir::AffineMap>{inputMap, rowMap},
+        reduceLastIterators,
+        [](mlir::OpBuilder &nestedBuilder, mlir::Location nestedLoc,
+           mlir::ValueRange args) {
+            auto sum = nestedBuilder.create<mlir::arith::AddFOp>(
+                nestedLoc, args[0], args[1]);
+            nestedBuilder.create<mlir::linalg::YieldOp>(
+                nestedLoc, sum.getResult());
+        });
+
+    auto resultEmpty = builder.create<mlir::tensor::EmptyOp>(
+        loc, inputType.getShape(), inputType.getElementType(), dynamicDims);
+    auto softmax = builder.create<mlir::linalg::GenericOp>(
+        loc, mlir::TypeRange{inputType},
+        mlir::ValueRange{expValues.getResult(0), rowSum.getResult(0)},
+        mlir::ValueRange{resultEmpty.getResult()},
+        llvm::ArrayRef<mlir::AffineMap>{inputMap, rowMap, inputMap},
+        parallelIterators,
+        [](mlir::OpBuilder &nestedBuilder, mlir::Location nestedLoc,
+           mlir::ValueRange args) {
+            auto div = nestedBuilder.create<mlir::arith::DivFOp>(
+                nestedLoc, args[0], args[1]);
+            nestedBuilder.create<mlir::linalg::YieldOp>(
+                nestedLoc, div.getResult());
+        });
+
+    values[node.outputs()[0]] = softmax.getResult(0);
+}
+
+void Codegen::genArgMaxNode(
+    mlir::OpBuilder &builder,
+    mlir::Location loc,
+    const Node &node,
+    std::unordered_map<std::string, mlir::Value> &values) const {
+
+    checkUnaryNodeShape(node, "ArgMax");
+
+    mlir::Value input = getBoundValue(values, node.inputs()[0], "ArgMax");
+    auto inputType = mlir::dyn_cast<mlir::RankedTensorType>(input.getType());
+    if (!inputType) {
+        throw std::runtime_error("ArgMax expects ranked tensor input");
+    }
+    if (inputType.getRank() != 2) {
+        throw std::runtime_error(
+            "ArgMax currently supports only rank-2 tensor input");
+    }
+    if (!inputType.getElementType().isF32()) {
+        throw std::runtime_error("ArgMax currently supports only f32 input");
+    }
+
+    int64_t axis = getIntAttribute(node, "axis", 0);
+    if (axis < 0) {
+        axis += inputType.getRank();
+    }
+    if (axis != 0 && axis != 1) {
+        throw std::runtime_error("ArgMax axis is out of range");
+    }
+
+    int64_t keepDims = getIntAttribute(node, "keepdims", 1);
+    if (keepDims != 0 && keepDims != 1) {
+        throw std::runtime_error("ArgMax keepdims must be 0 or 1");
+    }
+    bool selectLastIndex =
+        getIntAttribute(node, "select_last_index", 0) != 0;
+
+    int64_t outerDim = axis == 0 ? 1 : 0;
+    std::vector<int64_t> reducedShape = {inputType.getShape()[outerDim]};
+    auto indexType = builder.getIndexType();
+    auto i64Type = builder.getI64Type();
+    auto reducedType = mlir::RankedTensorType::get(reducedShape, i64Type);
+
+    std::vector<mlir::Value> dynamicDims;
+    if (mlir::ShapedType::isDynamic(reducedShape[0])) {
+        dynamicDims.push_back(
+            builder.create<mlir::tensor::DimOp>(loc, input, outerDim));
+    }
+
+    auto empty = builder.create<mlir::tensor::EmptyOp>(
+        loc, reducedShape, i64Type, dynamicDims);
+    auto zero = builder.create<mlir::arith::ConstantOp>(
+        loc, builder.getI64IntegerAttr(0));
+    auto init = builder.create<mlir::linalg::FillOp>(
+        loc, mlir::TypeRange{reducedType}, mlir::ValueRange{zero.getResult()},
+        mlir::ValueRange{empty.getResult()});
+
+    auto ctx = builder.getContext();
+    auto d0 = builder.getAffineDimExpr(0);
+    auto d1 = builder.getAffineDimExpr(1);
+    auto inputMap = mlir::AffineMap::get(2, 0, {d0, d1}, ctx);
+    auto outputMap = axis == 0
+                         ? mlir::AffineMap::get(2, 0, {d1}, ctx)
+                         : mlir::AffineMap::get(2, 0, {d0}, ctx);
+
+    llvm::SmallVector<mlir::utils::IteratorType> iteratorTypes = {
+        axis == 0 ? mlir::utils::IteratorType::reduction
+                  : mlir::utils::IteratorType::parallel,
+        axis == 1 ? mlir::utils::IteratorType::reduction
+                  : mlir::utils::IteratorType::parallel,
+    };
+
+    auto argmax = builder.create<mlir::linalg::GenericOp>(
+        loc,
+        mlir::TypeRange{reducedType},
+        mlir::ValueRange{input},
+        mlir::ValueRange{init.getResult(0)},
+        llvm::ArrayRef<mlir::AffineMap>{inputMap, outputMap},
+        iteratorTypes,
+        [input, axis, selectLastIndex, i64Type, indexType](
+            mlir::OpBuilder &nestedBuilder, mlir::Location nestedLoc,
+            mlir::ValueRange args) {
+            mlir::Value outerIndex = nestedBuilder.create<mlir::linalg::IndexOp>(
+                nestedLoc, axis == 0 ? 1 : 0);
+            mlir::Value reduceIndex =
+                nestedBuilder.create<mlir::linalg::IndexOp>(nestedLoc, axis);
+            mlir::Value bestIndex = nestedBuilder.create<mlir::arith::IndexCastOp>(
+                nestedLoc, indexType, args[1]);
+
+            llvm::SmallVector<mlir::Value> bestIndices;
+            if (axis == 0) {
+                bestIndices = {bestIndex, outerIndex};
+            } else {
+                bestIndices = {outerIndex, bestIndex};
+            }
+
+            auto bestValue = nestedBuilder.create<mlir::tensor::ExtractOp>(
+                nestedLoc, input, bestIndices);
+            auto cmp = nestedBuilder.create<mlir::arith::CmpFOp>(
+                nestedLoc,
+                selectLastIndex ? mlir::arith::CmpFPredicate::OGE
+                                : mlir::arith::CmpFPredicate::OGT,
+                args[0], bestValue.getResult());
+            auto reduceIndexI64 =
+                nestedBuilder.create<mlir::arith::IndexCastOp>(
+                    nestedLoc, i64Type, reduceIndex);
+            auto selected = nestedBuilder.create<mlir::arith::SelectOp>(
+                nestedLoc, cmp.getResult(), reduceIndexI64.getResult(), args[1]);
+            nestedBuilder.create<mlir::linalg::YieldOp>(
+                nestedLoc, selected.getResult());
+        });
+
+    mlir::Value result = argmax.getResult(0);
+    if (keepDims == 1) {
+        std::vector<int64_t> keepDimsShape;
+        if (axis == 0) {
+            keepDimsShape = {1, inputType.getShape()[1]};
+        } else {
+            keepDimsShape = {inputType.getShape()[0], 1};
+        }
+
+        auto keepDimsType = mlir::RankedTensorType::get(keepDimsShape, i64Type);
+        llvm::SmallVector<mlir::ReassociationIndices> reassociation;
+        mlir::ReassociationIndices group;
+        group.push_back(0);
+        group.push_back(1);
+        reassociation.push_back(std::move(group));
+
+        llvm::SmallVector<mlir::OpFoldResult> outputShape;
+        outputShape.reserve(2);
+        for (int64_t dim = 0; dim < 2; ++dim) {
+            if (mlir::ShapedType::isDynamic(keepDimsShape[dim])) {
+                outputShape.push_back(builder.create<mlir::tensor::DimOp>(
+                    loc, input, dim).getResult());
+            } else {
+                outputShape.push_back(builder.getIndexAttr(keepDimsShape[dim]));
+            }
+        }
+
+        auto expanded = builder.create<mlir::tensor::ExpandShapeOp>(
+            loc, keepDimsType, result, reassociation, outputShape);
+        result = expanded.getResult();
+    }
+
+    values[node.outputs()[0]] = result;
 }
 
 } // namespace tensor_compiler

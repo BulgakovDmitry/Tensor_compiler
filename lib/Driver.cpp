@@ -36,6 +36,7 @@
 #include "mlir/Dialect/SCF/IR/SCF.h"
 #include "mlir/Dialect/SCF/Transforms/BufferizableOpInterfaceImpl.h"
 #include "mlir/Dialect/Tensor/IR/Tensor.h"
+#include "mlir/Dialect/Tensor/IR/TensorInferTypeOpInterfaceImpl.h"
 #include "mlir/Dialect/Tensor/Transforms/BufferizableOpInterfaceImpl.h"
 #include "mlir/InitAllDialects.h"
 #include "mlir/Target/LLVMIR/Dialect/Builtin/BuiltinToLLVMIRTranslation.h"
@@ -120,6 +121,7 @@ int driver(int argc, char *argv[]) {
     mlir::cf::registerBufferizableOpInterfaceExternalModels(registry);
     mlir::linalg::registerBufferizableOpInterfaceExternalModels(registry);
     mlir::scf::registerBufferizableOpInterfaceExternalModels(registry);
+    mlir::tensor::registerInferTypeOpInterfaceExternalModels(registry);
     mlir::tensor::registerBufferizableOpInterfaceExternalModels(registry);
     context.appendDialectRegistry(registry);
     context.loadAllAvailableDialects();

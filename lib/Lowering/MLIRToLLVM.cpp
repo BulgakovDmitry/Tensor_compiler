@@ -19,6 +19,7 @@
 #include "mlir/Dialect/Func/Transforms/Passes.h"
 #include "mlir/Dialect/Bufferization/IR/Bufferization.h"
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
+#include "mlir/Dialect/MemRef/Transforms/Passes.h"
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Tensor/IR/Tensor.h"
@@ -59,11 +60,17 @@ LogicalResult MLIRToLLVM(MLIRContext &context,
     pm.addPass(createCanonicalizerPass());
     pm.addPass(createCSEPass());
 
+    pm.addPass(memref::createExpandStridedMetadataPass());
+    pm.addPass(createLowerAffinePass());
+    pm.addPass(createCanonicalizerPass());
+    pm.addPass(createCSEPass());
+
     pm.addPass(createConvertMathToLLVMPass());
     pm.addPass(createArithToLLVMConversionPass());
     pm.addPass(createFinalizeMemRefToLLVMConversionPass());
     pm.addPass(createConvertControlFlowToLLVMPass());
     pm.addPass(createConvertFuncToLLVMPass());
+    pm.addPass(createConvertIndexToLLVMPass());
 
     pm.addPass(createCanonicalizerPass());
     pm.addPass(createCSEPass());
