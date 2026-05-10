@@ -2,6 +2,7 @@
 #define INCLUDE_HANDLERS_H
 
 #include "onnx.pb.h"
+#include <limits>
 
 namespace tensor_compiler {
 
@@ -24,7 +25,8 @@ inline std::vector<int64_t> extractDims(const onnx::ValueInfoProto &v) {
 
   for (int i = 0; i < shape.dim_size(); ++i) {
     const auto &d = shape.dim(i);
-    int64_t val = d.has_dim_value() ? static_cast<int64_t>(d.dim_value()) : -1;
+    int64_t val = d.has_dim_value() ? static_cast<int64_t>(d.dim_value())
+                                    : std::numeric_limits<int64_t>::min();
     dims.push_back(val);
   }
 

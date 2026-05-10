@@ -50,6 +50,7 @@ private:
                 std::unordered_map<std::string, mlir::Value> &values) const;
 
   void genNode(mlir::OpBuilder &builder, mlir::Location loc, const Node &node,
+               const Graph &graph,
                std::unordered_map<std::string, mlir::Value> &values) const;
 
   void genMulNode(mlir::OpBuilder &builder, mlir::Location loc,
@@ -83,6 +84,44 @@ private:
   void genReluNode(mlir::OpBuilder &builder, mlir::Location loc,
                    const Node &node,
                    std::unordered_map<std::string, mlir::Value> &values) const;
+
+  void genConvNode(mlir::OpBuilder &builder, mlir::Location loc,
+                   const Graph &graph, const Node &node,
+                   std::unordered_map<std::string, mlir::Value> &values) const;
+
+  void genBatchNormalizationNode(
+      mlir::OpBuilder &builder, mlir::Location loc, const Node &node,
+      std::unordered_map<std::string, mlir::Value> &values) const;
+
+  void
+  genMaxPoolNode(mlir::OpBuilder &builder, mlir::Location loc, const Node &node,
+                 std::unordered_map<std::string, mlir::Value> &values) const;
+
+  void
+  genReduceMeanNode(mlir::OpBuilder &builder, mlir::Location loc,
+                    const Node &node,
+                    std::unordered_map<std::string, mlir::Value> &values) const;
+
+  void
+  genReshapeNode(mlir::OpBuilder &builder, mlir::Location loc, const Node &node,
+                 std::unordered_map<std::string, mlir::Value> &values) const;
+
+  void
+  genSqueezeNode(mlir::OpBuilder &builder, mlir::Location loc,
+                 const Graph &graph, const Node &node,
+                 std::unordered_map<std::string, mlir::Value> &values) const;
+
+  void
+  genMatMulNode(mlir::OpBuilder &builder, mlir::Location loc, const Node &node,
+                std::unordered_map<std::string, mlir::Value> &values) const;
+
+  void
+  genSoftmaxNode(mlir::OpBuilder &builder, mlir::Location loc, const Node &node,
+                 std::unordered_map<std::string, mlir::Value> &values) const;
+
+  void
+  genArgMaxNode(mlir::OpBuilder &builder, mlir::Location loc, const Node &node,
+                std::unordered_map<std::string, mlir::Value> &values) const;
 };
 
 } // namespace tensor_compiler
