@@ -105,6 +105,11 @@ private:
   void
   genReshapeNode(mlir::OpBuilder &builder, mlir::Location loc, const Node &node,
                  std::unordered_map<std::string, mlir::Value> &values) const;
+
+  void
+  genSqueezeNode(mlir::OpBuilder &builder, mlir::Location loc,
+                 const Graph &graph, const Node &node,
+                 std::unordered_map<std::string, mlir::Value> &values) const;
 };
 
 } // namespace tensor_compiler

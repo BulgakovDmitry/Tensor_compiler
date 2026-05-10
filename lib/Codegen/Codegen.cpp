@@ -1,3 +1,4 @@
+#include <cstring>
 #include <unordered_map>
 #include <vector>
 #include <string>
@@ -97,6 +98,33 @@ std::vector<int64_t> getIntVectorAttribute(
                                  "' must be an integer vector");
     }
     return *vectorValue;
+}
+
+std::vector<int64_t> readI64TensorData(const Tensor &tensor,
+                                       const char *opName) {
+    if (tensor.type() != onnx::TensorProto_DataType_INT64) {
+        throw std::runtime_error(std::string(opName) +
+                                 " axes input must be an INT64 constant tensor");
+    }
+
+    size_t elementCount = 1;
+    for (int64_t d : tensor.shape()) {
+        if (d < 0) {
+            throw std::runtime_error(std::string(opName) +
+                                     " axes tensor must have static shape");
+        }
+        elementCount *= static_cast<size_t>(d);
+    }
+
+    const auto &raw = tensor.data();
+    if (raw.size() != elementCount * sizeof(int64_t)) {
+        throw std::runtime_error(std::string(opName) +
+                                 " axes raw data size does not match shape");
+    }
+
+    std::vector<int64_t> data(elementCount);
+    std::memcpy(data.data(), raw.data(), raw.size());
+    return data;
 }
 
 void requireSize(const std::vector<int64_t> &values, size_t size,
@@ -359,6 +387,11 @@ void Codegen::genNode(
         return;
     }
 
+    if (opcode == "Squeeze") {
+        genSqueezeNode(builder, loc, graph, node, values);
+        return;
+    }
+
     throw std::runtime_error("unsupported opcode: " + opcode);
 }
 
@@ -407,26 +440,43 @@ mlir::Value Codegen::genConstantTensor(
 
     auto type = convertTensorType(tensor);
 
-    if (tensor.type() != onnx::TensorProto_DataType_FLOAT) {
-        throw std::runtime_error("only FLOAT constant tensors are supported for now");
-    }
-
     const auto &raw = tensor.data();
     size_t elementCount = 1;
     for (int64_t d : tensor.shape()) {
         elementCount *= static_cast<size_t>(d);
     }
 
-    if (raw.size() != elementCount * sizeof(float)) {
-        throw std::runtime_error("constant tensor raw data size does not match shape");
+    if (tensor.type() == onnx::TensorProto_DataType_FLOAT) {
+        if (raw.size() != elementCount * sizeof(float)) {
+            throw std::runtime_error(
+                "constant tensor raw data size does not match shape");
+        }
+
+        std::vector<float> data(elementCount);
+        std::memcpy(data.data(), raw.data(), raw.size());
+
+        auto attr =
+            mlir::DenseElementsAttr::get(type, llvm::ArrayRef<float>(data));
+        auto cst = builder.create<mlir::arith::ConstantOp>(loc, type, attr);
+        return cst.getResult();
     }
 
-    std::vector<float> data(elementCount);
-    std::memcpy(data.data(), raw.data(), raw.size());
+    if (tensor.type() == onnx::TensorProto_DataType_INT64) {
+        if (raw.size() != elementCount * sizeof(int64_t)) {
+            throw std::runtime_error(
+                "constant tensor raw data size does not match shape");
+        }
 
-    auto attr = mlir::DenseElementsAttr::get(type, llvm::ArrayRef<float>(data));
-    auto cst = builder.create<mlir::arith::ConstantOp>(loc, type, attr);
-    return cst.getResult();
+        std::vector<int64_t> data(elementCount);
+        std::memcpy(data.data(), raw.data(), raw.size());
+
+        auto attr = mlir::DenseIntElementsAttr::get(
+            mlir::cast<mlir::ShapedType>(type), llvm::ArrayRef<int64_t>(data));
+        auto cst = builder.create<mlir::arith::ConstantOp>(loc, type, attr);
+        return cst.getResult();
+    }
+
+    throw std::runtime_error("unsupported constant tensor element type");
 }
 
 void Codegen::genConstants(
@@ -1132,6 +1182,132 @@ void Codegen::genReshapeNode(
     auto reshape = builder.create<mlir::tensor::ReshapeOp>(
         loc, resultType, input, shape);
     values[node.outputs()[0]] = reshape.getResult();
+}
+
+void Codegen::genSqueezeNode(
+    mlir::OpBuilder &builder,
+    mlir::Location loc,
+    const Graph &graph,
+    const Node &node,
+    std::unordered_map<std::string, mlir::Value> &values) const {
+
+    if (node.inputs().empty() || node.inputs().size() > 2) {
+        throw std::runtime_error("Squeeze node must have 1 or 2 inputs");
+    }
+    if (node.outputs().size() != 1) {
+        throw std::runtime_error("Squeeze node must have exactly 1 output");
+    }
+
+    mlir::Value input = getBoundValue(values, node.inputs()[0], "Squeeze");
+    auto inputType = mlir::dyn_cast<mlir::RankedTensorType>(input.getType());
+    if (!inputType) {
+        throw std::runtime_error("Squeeze expects ranked tensor input");
+    }
+
+    const int64_t rank = inputType.getRank();
+    std::vector<bool> squeezed(static_cast<size_t>(rank), false);
+
+    std::vector<int64_t> axes;
+    const Attribute::AttrValue *axesAttr = getAttributeValue(node, "axes");
+    if (axesAttr) {
+        const auto *axisVector = std::get_if<std::vector<int64_t>>(axesAttr);
+        if (!axisVector) {
+            throw std::runtime_error("Squeeze attribute 'axes' must be an integer vector");
+        }
+        axes = *axisVector;
+    } else if (node.inputs().size() == 2) {
+        const Tensor *axesTensor = graph.tensor(node.inputs()[1]);
+        if (!axesTensor || !axesTensor->isConstant()) {
+            throw std::runtime_error(
+                "Squeeze axes input must be a constant initializer");
+        }
+        axes = readI64TensorData(*axesTensor, "Squeeze");
+    }
+
+    if (axes.empty() && !axesAttr && node.inputs().size() == 1) {
+        for (int64_t i = 0; i < rank; ++i) {
+            if (inputType.getShape()[i] == 1) {
+                squeezed[static_cast<size_t>(i)] = true;
+            } else if (mlir::ShapedType::isDynamic(inputType.getShape()[i])) {
+                throw std::runtime_error(
+                    "Squeeze without axes requires static input dimensions");
+            }
+        }
+    } else {
+        for (int64_t axis : axes) {
+            if (axis < 0) {
+                axis += rank;
+            }
+            if (axis < 0 || axis >= rank) {
+                throw std::runtime_error("Squeeze axis is out of range");
+            }
+            if (squeezed[static_cast<size_t>(axis)]) {
+                throw std::runtime_error("Squeeze axes must be unique");
+            }
+
+            int64_t dim = inputType.getShape()[axis];
+            if (!mlir::ShapedType::isDynamic(dim) && dim != 1) {
+                throw std::runtime_error(
+                    "Squeeze can only remove dimensions of size 1");
+            }
+            squeezed[static_cast<size_t>(axis)] = true;
+        }
+    }
+
+    std::vector<int64_t> resultShape;
+    resultShape.reserve(static_cast<size_t>(rank));
+    for (int64_t i = 0; i < rank; ++i) {
+        if (!squeezed[static_cast<size_t>(i)]) {
+            resultShape.push_back(inputType.getShape()[i]);
+        }
+    }
+
+    auto resultType = mlir::RankedTensorType::get(
+        resultShape, inputType.getElementType());
+
+    if (resultShape.empty()) {
+        llvm::SmallVector<mlir::Value> indices;
+        indices.reserve(static_cast<size_t>(rank));
+        for (int64_t i = 0; i < rank; ++i) {
+            indices.push_back(builder.create<mlir::arith::ConstantIndexOp>(
+                loc, 0));
+        }
+        auto scalar = builder.create<mlir::tensor::ExtractOp>(
+            loc, inputType.getElementType(), input, indices);
+        auto tensor = builder.create<mlir::tensor::FromElementsOp>(
+            loc, resultType, scalar.getResult());
+        values[node.outputs()[0]] = tensor.getResult();
+        return;
+    }
+
+    llvm::SmallVector<mlir::ReassociationIndices> reassociation;
+    llvm::SmallVector<int64_t> leadingSqueezed;
+    for (int64_t i = 0; i < rank; ++i) {
+        if (squeezed[static_cast<size_t>(i)]) {
+            if (reassociation.empty()) {
+                leadingSqueezed.push_back(i);
+            } else {
+                reassociation.back().push_back(i);
+            }
+            continue;
+        }
+
+        mlir::ReassociationIndices group;
+        if (!leadingSqueezed.empty()) {
+            group.append(leadingSqueezed);
+            leadingSqueezed.clear();
+        }
+        group.push_back(i);
+        reassociation.push_back(std::move(group));
+    }
+
+    if (!leadingSqueezed.empty()) {
+        reassociation.back().append(leadingSqueezed);
+    }
+
+    auto squeeze = builder.create<mlir::tensor::CollapseShapeOp>(
+        loc, resultType, input, reassociation);
+    values[node.outputs()[0]] = squeeze.getResult();
 }
 
 } // namespace tensor_compiler
