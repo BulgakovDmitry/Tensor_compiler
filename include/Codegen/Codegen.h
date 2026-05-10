@@ -111,9 +111,9 @@ private:
                  const Graph &graph, const Node &node,
                  std::unordered_map<std::string, mlir::Value> &values) const;
 
-  void genMatMulNode(mlir::OpBuilder &builder, mlir::Location loc,
-                     const Node &node,
-                     std::unordered_map<std::string, mlir::Value> &values) const;
+  void
+  genMatMulNode(mlir::OpBuilder &builder, mlir::Location loc, const Node &node,
+                std::unordered_map<std::string, mlir::Value> &values) const;
 };
 
 } // namespace tensor_compiler
