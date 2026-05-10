@@ -97,13 +97,14 @@ private:
   genMaxPoolNode(mlir::OpBuilder &builder, mlir::Location loc, const Node &node,
                  std::unordered_map<std::string, mlir::Value> &values) const;
 
-  void genReduceMeanNode(
-      mlir::OpBuilder &builder, mlir::Location loc, const Node &node,
-      std::unordered_map<std::string, mlir::Value> &values) const;
+  void
+  genReduceMeanNode(mlir::OpBuilder &builder, mlir::Location loc,
+                    const Node &node,
+                    std::unordered_map<std::string, mlir::Value> &values) const;
 
-  void genReshapeNode(
-      mlir::OpBuilder &builder, mlir::Location loc, const Node &node,
-      std::unordered_map<std::string, mlir::Value> &values) const;
+  void
+  genReshapeNode(mlir::OpBuilder &builder, mlir::Location loc, const Node &node,
+                 std::unordered_map<std::string, mlir::Value> &values) const;
 };
 
 } // namespace tensor_compiler
