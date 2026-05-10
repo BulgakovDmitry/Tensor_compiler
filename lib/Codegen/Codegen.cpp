@@ -349,6 +349,11 @@ void Codegen::genNode(
         return;
     }
 
+    if (opcode == "ReduceMean") {
+        genReduceMeanNode(builder, loc, node, values);
+        return;
+    }
+
     throw std::runtime_error("unsupported opcode: " + opcode);
 }
 
@@ -561,30 +566,41 @@ void Codegen::genConvNode(
     if (node.outputs().size() != 1) {
         throw std::runtime_error("Conv node must have exactly 1 output");
     }
-    if (node.inputs().size() == 3) {
-        throw std::runtime_error("Conv bias input is not supported yet");
-    }
-
     const std::string &inputName = node.inputs()[0];
     const std::string &filterName = node.inputs()[1];
     const std::string &outName = node.outputs()[0];
+    bool hasBias = node.inputs().size() == 3 && !node.inputs()[2].empty();
 
     mlir::Value input = getBoundValue(values, inputName, "Conv");
     mlir::Value filter = getBoundValue(values, filterName, "Conv");
+    mlir::Value bias;
+    if (hasBias) {
+        bias = getBoundValue(values, node.inputs()[2], "Conv");
+    }
 
     auto inputType =
         mlir::dyn_cast<mlir::RankedTensorType>(input.getType());
     auto filterType =
         mlir::dyn_cast<mlir::RankedTensorType>(filter.getType());
+    auto biasType =
+        hasBias ? mlir::dyn_cast<mlir::RankedTensorType>(bias.getType())
+                : mlir::RankedTensorType{};
 
     if (!inputType || !filterType) {
         throw std::runtime_error("Conv expects ranked tensor operands");
     }
+    if (hasBias && !biasType) {
+        throw std::runtime_error("Conv expects ranked tensor bias");
+    }
     if (inputType.getRank() != 4 || filterType.getRank() != 4) {
         throw std::runtime_error("Conv currently supports only 2D NCHW/FCHW");
     }
+    if (hasBias && biasType.getRank() != 1) {
+        throw std::runtime_error("Conv bias must be a rank-1 tensor");
+    }
     if (!inputType.getElementType().isF32() ||
-        !filterType.getElementType().isF32()) {
+        !filterType.getElementType().isF32() ||
+        (hasBias && !biasType.getElementType().isF32())) {
         throw std::runtime_error("Conv currently supports only f32 tensors");
     }
 
@@ -620,6 +636,10 @@ void Codegen::genConvNode(
 
     if (channels != filterChannels) {
         throw std::runtime_error("Conv input/filter channel mismatch");
+    }
+    if (hasBias && !mlir::ShapedType::isDynamic(biasType.getShape()[0]) &&
+        biasType.getShape()[0] != filters) {
+        throw std::runtime_error("Conv bias channel count mismatch");
     }
 
     int64_t strideH = checkedPositiveDim(strides[0], "stride height");
@@ -678,19 +698,48 @@ void Codegen::genConvNode(
         collectDynamicDims(builder, loc, input, outType);
     auto empty = builder.create<mlir::tensor::EmptyOp>(
         loc, outType, dynamicDims);
-    auto zero = builder.create<mlir::arith::ConstantOp>(
-        loc, builder.getF32FloatAttr(0.0f));
-    auto filled = builder.create<mlir::linalg::FillOp>(
-        loc,
-        mlir::TypeRange{outType},
-        mlir::ValueRange{zero.getResult()},
-        mlir::ValueRange{empty.getResult()});
+
+    mlir::Value init;
+    if (hasBias) {
+        auto *ctx = builder.getContext();
+        auto n = builder.getAffineDimExpr(0);
+        auto c = builder.getAffineDimExpr(1);
+        auto h = builder.getAffineDimExpr(2);
+        auto w = builder.getAffineDimExpr(3);
+        auto channelMap = mlir::AffineMap::get(4, 0, {c}, ctx);
+        auto outputMap = mlir::AffineMap::get(4, 0, {n, c, h, w}, ctx);
+        llvm::SmallVector<mlir::utils::IteratorType> iteratorTypes(
+            4, mlir::utils::IteratorType::parallel);
+
+        auto biasFill = builder.create<mlir::linalg::GenericOp>(
+            loc,
+            mlir::TypeRange{outType},
+            mlir::ValueRange{bias},
+            mlir::ValueRange{empty.getResult()},
+            llvm::ArrayRef<mlir::AffineMap>{channelMap, outputMap},
+            iteratorTypes,
+            [](mlir::OpBuilder &nestedBuilder, mlir::Location nestedLoc,
+               mlir::ValueRange args) {
+                nestedBuilder.create<mlir::linalg::YieldOp>(
+                    nestedLoc, args[0]);
+            });
+        init = biasFill.getResult(0);
+    } else {
+        auto zero = builder.create<mlir::arith::ConstantOp>(
+            loc, builder.getF32FloatAttr(0.0f));
+        auto filled = builder.create<mlir::linalg::FillOp>(
+            loc,
+            mlir::TypeRange{outType},
+            mlir::ValueRange{zero.getResult()},
+            mlir::ValueRange{empty.getResult()});
+        init = filled.getResult(0);
+    }
 
     auto conv = builder.create<mlir::linalg::Conv2DNchwFchwOp>(
         loc,
         mlir::TypeRange{outType},
         mlir::ValueRange{convInput, filter},
-        mlir::ValueRange{filled.getResult(0)},
+        mlir::ValueRange{init},
         getI64VectorAttr(builder, strides),
         getI64VectorAttr(builder, dilations));
 
@@ -920,6 +969,121 @@ void Codegen::genMaxPoolNode(
         getI64VectorAttr(builder, dilations));
 
     values[node.outputs()[0]] = pool.getResult(0);
+}
+
+void Codegen::genReduceMeanNode(
+    mlir::OpBuilder &builder,
+    mlir::Location loc,
+    const Node &node,
+    std::unordered_map<std::string, mlir::Value> &values) const {
+
+    checkUnaryNodeShape(node, "ReduceMean");
+
+    mlir::Value input = getBoundValue(values, node.inputs()[0], "ReduceMean");
+    auto inputType =
+        mlir::dyn_cast<mlir::RankedTensorType>(input.getType());
+    if (!inputType || inputType.getRank() != 4 ||
+        !inputType.getElementType().isF32()) {
+        throw std::runtime_error(
+            "ReduceMean supports only rank-4 f32 NCHW input");
+    }
+
+    if (getIntAttribute(node, "keepdims", 1) != 1) {
+        throw std::runtime_error(
+            "ReduceMean keepdims=0 is not supported yet");
+    }
+
+    auto axes = getIntVectorAttribute(node, "axes", {});
+    if (axes.empty()) {
+        axes = {0, 1, 2, 3};
+    }
+    for (int64_t &axis : axes) {
+        if (axis < 0) {
+            axis += inputType.getRank();
+        }
+    }
+    if (axes.size() != 2 || axes[0] != 2 || axes[1] != 3) {
+        throw std::runtime_error(
+            "ReduceMean currently supports only axes=[2,3]");
+    }
+
+    const auto inputShape = inputType.getShape();
+    int64_t height = checkedPositiveDim(inputShape[2], "ReduceMean height");
+    int64_t width = checkedPositiveDim(inputShape[3], "ReduceMean width");
+
+    std::vector<int64_t> outShape(inputShape.begin(), inputShape.end());
+    outShape[2] = 1;
+    outShape[3] = 1;
+    auto outType = mlir::RankedTensorType::get(
+        outShape, inputType.getElementType());
+
+    std::vector<mlir::Value> dynamicDims =
+        collectDynamicDims(builder, loc, input, outType);
+    auto sumEmpty = builder.create<mlir::tensor::EmptyOp>(
+        loc, outType, dynamicDims);
+    auto zero = builder.create<mlir::arith::ConstantOp>(
+        loc, builder.getF32FloatAttr(0.0f));
+    auto zeroed = builder.create<mlir::linalg::FillOp>(
+        loc,
+        mlir::TypeRange{outType},
+        mlir::ValueRange{zero.getResult()},
+        mlir::ValueRange{sumEmpty.getResult()});
+
+    auto *ctx = builder.getContext();
+    auto n = builder.getAffineDimExpr(0);
+    auto c = builder.getAffineDimExpr(1);
+    auto h = builder.getAffineDimExpr(2);
+    auto w = builder.getAffineDimExpr(3);
+    auto inputMap = mlir::AffineMap::get(4, 0, {n, c, h, w}, ctx);
+    auto outputMap = mlir::AffineMap::get(
+        4, 0, {n, c, builder.getAffineConstantExpr(0),
+               builder.getAffineConstantExpr(0)}, ctx);
+
+    llvm::SmallVector<mlir::utils::IteratorType> reductionIterators = {
+        mlir::utils::IteratorType::parallel,
+        mlir::utils::IteratorType::parallel,
+        mlir::utils::IteratorType::reduction,
+        mlir::utils::IteratorType::reduction};
+
+    auto sum = builder.create<mlir::linalg::GenericOp>(
+        loc,
+        mlir::TypeRange{outType},
+        mlir::ValueRange{input},
+        mlir::ValueRange{zeroed.getResult(0)},
+        llvm::ArrayRef<mlir::AffineMap>{inputMap, outputMap},
+        reductionIterators,
+        [](mlir::OpBuilder &nestedBuilder, mlir::Location nestedLoc,
+           mlir::ValueRange args) {
+            auto added = nestedBuilder.create<mlir::arith::AddFOp>(
+                nestedLoc, args[0], args[1]);
+            nestedBuilder.create<mlir::linalg::YieldOp>(
+                nestedLoc, added.getResult());
+        });
+
+    auto meanEmpty = builder.create<mlir::tensor::EmptyOp>(
+        loc, outType, dynamicDims);
+    auto outMap = mlir::AffineMap::get(4, 0, {n, c, h, w}, ctx);
+    llvm::SmallVector<mlir::utils::IteratorType> parallelIterators(
+        4, mlir::utils::IteratorType::parallel);
+    float scale = 1.0f / static_cast<float>(height * width);
+    auto mean = builder.create<mlir::linalg::GenericOp>(
+        loc,
+        mlir::TypeRange{outType},
+        mlir::ValueRange{sum.getResult(0)},
+        mlir::ValueRange{meanEmpty.getResult()},
+        llvm::ArrayRef<mlir::AffineMap>{outMap, outMap},
+        parallelIterators,
+        [scale](mlir::OpBuilder &nestedBuilder, mlir::Location nestedLoc,
+                mlir::ValueRange args) {
+            auto scaleValue = nestedBuilder.create<mlir::arith::ConstantOp>(
+                nestedLoc, nestedBuilder.getF32FloatAttr(scale));
+            auto scaled = nestedBuilder.create<mlir::arith::MulFOp>(
+                nestedLoc, args[0], scaleValue.getResult());
+            nestedBuilder.create<mlir::linalg::YieldOp>(
+                nestedLoc, scaled.getResult());
+        });
+
+    values[node.outputs()[0]] = mean.getResult(0);
 }
 
 } // namespace tensor_compiler
