@@ -28,6 +28,9 @@
 #include "mlir/Dialect/Math/IR/Math.h"
 #include "mlir/Dialect/ControlFlow/IR/ControlFlow.h"
 #include "mlir/Dialect/LLVMIR/LLVMDialect.h"
+#include "mlir/Conversion/LLVMCommon/ConversionTarget.h"
+#include "mlir/Conversion/LLVMCommon/TypeConverter.h"
+#include "mlir/Conversion/FuncToLLVM/ConvertFuncToLLVMPass.h"
 
 using namespace mlir;
 
@@ -69,7 +72,11 @@ LogicalResult MLIRToLLVM(MLIRContext &context,
     pm.addPass(createArithToLLVMConversionPass());
     pm.addPass(createFinalizeMemRefToLLVMConversionPass());
     pm.addPass(createConvertControlFlowToLLVMPass());
-    pm.addPass(createConvertFuncToLLVMPass());
+
+    mlir::ConvertFuncToLLVMPassOptions funcOptions;
+    funcOptions.useBarePtrCallConv = true;
+
+    pm.addPass(mlir::createConvertFuncToLLVMPass(funcOptions));
     pm.addPass(createConvertIndexToLLVMPass());
 
     pm.addPass(createCanonicalizerPass());

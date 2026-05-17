@@ -7,6 +7,11 @@
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
 #include "mlir/Dialect/Math/IR/Math.h"
 #include "mlir/Dialect/Tensor/IR/Tensor.h"
+#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
+#include "mlir/Dialect/Func/IR/FuncOps.h"
+#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Linalg/Utils/Utils.h"
+#include "llvm/ADT/SmallVector.h"
 
 namespace tensor_compiler {
 
@@ -245,6 +250,29 @@ mlir::AffineMap createBroadcastAffineMap(
     return mlir::AffineMap::get(resultRank, 0, exprs, builder.getContext());
 }
 
+llvm::SmallVector<mlir::utils::IteratorType> createParallelIterators(int64_t rank) {
+    llvm::SmallVector<mlir::utils::IteratorType> result;
+    result.reserve(static_cast<size_t>(rank));
+    for (int64_t i = 0; i < rank; ++i) {
+        result.push_back(mlir::utils::IteratorType::parallel);
+    }
+    return result;
+}
+
+llvm::SmallVector<mlir::utils::IteratorType> createMixedIterators(
+    int64_t rank,
+    llvm::ArrayRef<int64_t> reductionDims) {
+
+    llvm::SmallVector<mlir::utils::IteratorType> result;
+    result.reserve(static_cast<size_t>(rank));
+    for (int64_t i = 0; i < rank; ++i) {
+        bool isReduction = std::find(reductionDims.begin(), reductionDims.end(), i) != reductionDims.end();
+        result.push_back(isReduction ? mlir::utils::IteratorType::reduction
+                                     : mlir::utils::IteratorType::parallel);
+    }
+    return result;
+}
+
 mlir::Value genBroadcastAddOp(
     mlir::OpBuilder &builder,
     mlir::Location loc,
@@ -264,9 +292,7 @@ mlir::Value genBroadcastAddOp(
     auto empty = builder.create<mlir::tensor::EmptyOp>(loc, resultType, dynamicDims);
     auto identityMap = mlir::AffineMap::getMultiDimIdentityMap(resultType.getRank(), builder.getContext());
 
-    llvm::SmallVector<mlir::utils::IteratorType> iterators(
-        static_cast<size_t>(resultType.getRank()),
-        mlir::utils::IteratorType::parallel);
+    auto iterators = createParallelIterators(resultType.getRank());
 
     auto addOp = builder.create<mlir::linalg::GenericOp>(
         loc,
@@ -282,6 +308,12 @@ mlir::Value genBroadcastAddOp(
     return addOp.getResult(0);
 }
 
+mlir::Value createTensorFromPtr(mlir::OpBuilder &builder, mlir::Location loc,
+                                mlir::Value ptr, mlir::RankedTensorType tensorType) {
+    return builder.create<mlir::UnrealizedConversionCastOp>(
+        loc, mlir::TypeRange{tensorType}, mlir::ValueRange{ptr}).getResult(0);
+}
+
 } // namespace
 
 Codegen::Codegen(mlir::MLIRContext &context) : context_(context) {}
@@ -292,33 +324,78 @@ const mlir::MLIRContext &Codegen::getContext() const noexcept {
     return context_;
 }
 
+void Codegen::writeResultToOutputBuffer(
+    mlir::OpBuilder &builder,
+    mlir::Location loc,
+    mlir::Value computedTensor,
+    mlir::Value outBuffer) {
+
+    auto tensorType = mlir::cast<mlir::RankedTensorType>(computedTensor.getType());
+    int64_t rank = tensorType.getRank();
+
+    auto identityMap = mlir::AffineMap::getMultiDimIdentityMap(rank, builder.getContext());
+
+    llvm::SmallVector<mlir::utils::IteratorType> iterators;
+    iterators.reserve(static_cast<size_t>(rank));
+    for (int64_t i = 0; i < rank; ++i) {
+        iterators.push_back(mlir::utils::IteratorType::parallel);
+    }
+
+    builder.create<mlir::linalg::GenericOp>(
+        loc,
+        /*resultTypes=*/mlir::TypeRange{},
+        /*inputs=*/mlir::ValueRange{computedTensor},
+        /*outputs=*/mlir::ValueRange{outBuffer},
+        /*indexing_maps=*/llvm::ArrayRef<mlir::AffineMap>{identityMap, identityMap},
+        /*iterator_types=*/iterators,
+        [](mlir::OpBuilder &b, mlir::Location l, mlir::ValueRange args) {
+            // args[0] = value from computedTensor
+            // Yield write this to outs-buffer
+            b.create<mlir::linalg::YieldOp>(l, args[0]);
+        });
+}
+
 mlir::OwningOpRef<mlir::ModuleOp> Codegen::generate(const Graph &graph) {
     mlir::OpBuilder builder(&context_);
     mlir::Location loc = builder.getUnknownLoc();
     mlir::ModuleOp module = mlir::ModuleOp::create(loc);
 
     constexpr const char* ENTRY_FUNC_NAME = "tensorCompForwardImpl";
+    auto i32Type = builder.getI32Type();
 
-    std::string funcName = ENTRY_FUNC_NAME;
+    auto funcArgs = buildInputTypes(graph);
+    funcArgs.insert(funcArgs.end(), buildResultTypes(graph).begin(), buildResultTypes(graph).end());
 
-    std::vector<mlir::Type> inputTypes  = buildInputTypes(graph);
-    std::vector<mlir::Type> resultTypes = buildResultTypes(graph);
-
-    mlir::FunctionType funcType = builder.getFunctionType(inputTypes, resultTypes);
-    auto func = mlir::func::FuncOp::create(loc, funcName, funcType);
+    auto funcType = builder.getFunctionType(funcArgs, {i32Type});
+    auto func = mlir::func::FuncOp::create(loc, ENTRY_FUNC_NAME, funcType);
     func.setPublic();
 
     mlir::Block *entryBlock = func.addEntryBlock();
     builder.setInsertionPointToStart(entryBlock);
-
     std::unordered_map<std::string, mlir::Value> values;
 
-    bindFunctionInputs(graph, entryBlock, values);
+    bindRawPointerInputs(graph, entryBlock, builder, loc, values);
     genConstants(builder, loc, graph, values);
     genNodes(builder, loc, graph, values);
 
-    auto returnValues = collectReturnValues(graph, values);
-    builder.create<mlir::func::ReturnOp>(loc, returnValues);
+    size_t outArgOffset = graph.inputs().size();
+    for (size_t i = 0; i < graph.outputs().size(); ++i) {
+        const std::string &outName = graph.outputs()[i];
+        auto it = values.find(outName);
+        if (it == values.end()) {
+            throw std::runtime_error("output not computed: " + outName);
+        }
+
+        mlir::Value computedTensor = it->second;
+        mlir::Value outPtr = entryBlock->getArgument(outArgOffset + i);
+        mlir::Value outBuffer = createTensorFromPtr(builder, loc, outPtr,
+                                                    mlir::cast<mlir::RankedTensorType>(computedTensor.getType()));
+
+        writeResultToOutputBuffer(builder, loc, computedTensor, outBuffer);
+    }
+
+    builder.create<mlir::func::ReturnOp>(loc,
+        builder.create<mlir::arith::ConstantOp>(loc, i32Type, builder.getI32IntegerAttr(0)).getResult());
 
     module.push_back(func);
     return module;
@@ -353,59 +430,51 @@ Codegen::convertTensorType(const Tensor &tensor) const {
 std::vector<mlir::Type> Codegen::buildInputTypes(const Graph &graph) const {
     std::vector<mlir::Type> inputTypes;
     inputTypes.reserve(graph.inputs().size());
-
-    for (const auto &inputName : graph.inputs()) {
-        const Tensor *tensor = graph.tensor(inputName);
-        if (!tensor) {
-            throw std::runtime_error("graph input tensor not found: " + inputName);
-        }
-        inputTypes.push_back(convertTensorType(*tensor));
-    }
-
+    auto ptrType = mlir::LLVM::LLVMPointerType::get(&context_, 0);
+    for (size_t i = 0; i < graph.inputs().size(); ++i) inputTypes.push_back(ptrType);
     return inputTypes;
 }
 
 std::vector<mlir::Type> Codegen::buildResultTypes(const Graph &graph) const {
     std::vector<mlir::Type> resultTypes;
     resultTypes.reserve(graph.outputs().size());
-
-    for (const auto &outputName : graph.outputs()) {
-        const Tensor *tensor = graph.tensor(outputName);
-        if (!tensor) {
-            throw std::runtime_error("graph output tensor not found: " + outputName);
-        }
-        resultTypes.push_back(convertTensorType(*tensor));
-    }
-
+    auto ptrType = mlir::LLVM::LLVMPointerType::get(&context_, 0);
+    for (size_t i = 0; i < graph.outputs().size(); ++i) resultTypes.push_back(ptrType);
     return resultTypes;
 }
 
-void Codegen::bindFunctionInputs(
+void Codegen::bindRawPointerInputs(
     const Graph &graph,
-    mlir::Block *entry_block,
-    std::unordered_map<std::string, mlir::Value> &values) const {
+    mlir::Block *entryBlock,
+    mlir::OpBuilder &builder,
+    mlir::Location loc,
+    std::unordered_map<std::string, mlir::Value> &values) {
+
+    auto bindOne = [&](size_t argIdx, const std::string &name, const Tensor *tensor) {
+        if (!tensor) throw std::runtime_error("tensor not found: " + name);
+        mlir::Value ptr = entryBlock->getArgument(argIdx);
+        values[name] = createTensorFromPtr(builder, loc, ptr, convertTensorType(*tensor));
+    };
 
     for (size_t i = 0; i < graph.inputs().size(); ++i) {
-        values[graph.inputs()[i]] = entry_block->getArgument(i);
+        bindOne(i, graph.inputs()[i], graph.tensor(graph.inputs()[i]));
+    }
+
+    size_t outOffset = graph.inputs().size();
+    for (size_t i = 0; i < graph.outputs().size(); ++i) {
+        bindOne(outOffset + i, graph.outputs()[i], graph.tensor(graph.outputs()[i]));
     }
 }
 
 std::vector<mlir::Value> Codegen::collectReturnValues(
     const Graph &graph,
     const std::unordered_map<std::string, mlir::Value> &values) const {
-
-    std::vector<mlir::Value> returnValues;
-    returnValues.reserve(graph.outputs().size());
-
     for (const auto &outputName : graph.outputs()) {
-        auto it = values.find(outputName);
-        if (it == values.end()) {
-            throw std::runtime_error("no MLIR value bound for output: " + outputName);
+        if (values.find(outputName) == values.end()) {
+            throw std::runtime_error("output not bound: " + outputName);
         }
-        returnValues.push_back(it->second);
     }
-
-    return returnValues;
+    return {};
 }
 
 void Codegen::genNodes(
@@ -708,9 +777,7 @@ void Codegen::genReluNode(
     auto map = mlir::AffineMap::get(type.getRank(), 0, exprs,
                                     builder.getContext());
 
-    llvm::SmallVector<mlir::utils::IteratorType> iteratorTypes(
-        static_cast<size_t>(type.getRank()),
-        mlir::utils::IteratorType::parallel);
+    auto iteratorTypes = createParallelIterators(type.getRank());
 
     auto relu = builder.create<mlir::linalg::GenericOp>(
         loc,
@@ -887,8 +954,7 @@ void Codegen::genConvNode(
         auto w = builder.getAffineDimExpr(3);
         auto channelMap = mlir::AffineMap::get(4, 0, {c}, ctx);
         auto outputMap = mlir::AffineMap::get(4, 0, {n, c, h, w}, ctx);
-        llvm::SmallVector<mlir::utils::IteratorType> iteratorTypes(
-            4, mlir::utils::IteratorType::parallel);
+        auto iteratorTypes = createParallelIterators(4);
 
         auto biasFill = builder.create<mlir::linalg::GenericOp>(
             loc,
@@ -1272,40 +1338,30 @@ void Codegen::genReshapeNode(
     std::unordered_map<std::string, mlir::Value> &values) const {
 
     checkBinaryNodeShape(node, "Reshape");
-
     mlir::Value input = getBoundValue(values, node.inputs()[0], "Reshape");
-    mlir::Value shape = getBoundValue(values, node.inputs()[1], "Reshape");
+    mlir::Value shapeVal = getBoundValue(values, node.inputs()[1], "Reshape");
 
-    auto inputType = mlir::dyn_cast<mlir::TensorType>(input.getType());
-    auto shapeType =
-        mlir::dyn_cast<mlir::RankedTensorType>(shape.getType());
-    if (!inputType) {
-        throw std::runtime_error("Reshape expects tensor input");
-    }
-    if (!shapeType || shapeType.getRank() != 1 ||
-        (!shapeType.getElementType().isSignlessInteger() &&
-         !shapeType.getElementType().isIndex())) {
-        throw std::runtime_error(
-            "Reshape shape input must be a rank-1 integer tensor");
+    auto inputType = mlir::dyn_cast<mlir::RankedTensorType>(input.getType());
+    auto shapeType = mlir::dyn_cast<mlir::RankedTensorType>(shapeVal.getType());
+    if (!inputType || !shapeType || shapeType.getRank() != 1) {
+        throw std::runtime_error("Reshape expects ranked inputs");
     }
 
-    mlir::TensorType resultType;
-    int64_t resultRank = shapeType.getShape()[0];
-    if (mlir::ShapedType::isDynamic(resultRank)) {
-        resultType = mlir::UnrankedTensorType::get(inputType.getElementType());
-    } else {
-        if (resultRank < 0) {
-            throw std::runtime_error("Reshape result rank must be non-negative");
+    std::vector<int64_t> resultShape;
+    if (auto constOp = shapeVal.getDefiningOp<mlir::arith::ConstantOp>()) {
+        if (auto dense = mlir::dyn_cast<mlir::DenseIntElementsAttr>(constOp.getValue())) {
+            for (int64_t v : dense.getValues<int64_t>()) resultShape.push_back(v);
         }
-        std::vector<int64_t> resultShape(
-            static_cast<size_t>(resultRank), mlir::ShapedType::kDynamic);
-        resultType = mlir::RankedTensorType::get(
-            resultShape, inputType.getElementType());
+    }
+    if (resultShape.empty()) {
+        int64_t r = shapeType.getShape()[0];
+        if (mlir::ShapedType::isDynamic(r)) throw std::runtime_error("Reshape: unknown rank");
+        resultShape.assign(static_cast<size_t>(r), mlir::ShapedType::kDynamic);
     }
 
-    auto reshape = builder.create<mlir::tensor::ReshapeOp>(
-        loc, resultType, input, shape);
-    values[node.outputs()[0]] = reshape.getResult();
+    auto resultType = mlir::RankedTensorType::get(resultShape, inputType.getElementType());
+    values[node.outputs()[0]] = builder.create<mlir::tensor::ReshapeOp>(
+        loc, resultType, input, shapeVal).getResult();
 }
 
 // void Codegen::genSqueezeNode(
@@ -1542,10 +1598,9 @@ void Codegen::genSoftmaxNode(
     auto d1 = builder.getAffineDimExpr(1);
     auto inputMap = mlir::AffineMap::get(2, 0, {d0, d1}, ctx);
     auto rowMap = mlir::AffineMap::get(2, 0, {d0}, ctx);
-    llvm::SmallVector<mlir::utils::IteratorType> reduceLastIterators = {
-        mlir::utils::IteratorType::parallel,
-        mlir::utils::IteratorType::reduction,
-    };
+    llvm::SmallVector<mlir::utils::IteratorType> reduceLastIterators;
+    reduceLastIterators.push_back(mlir::utils::IteratorType::parallel);
+    reduceLastIterators.push_back(mlir::utils::IteratorType::reduction);
 
     auto negInf = builder.create<mlir::arith::ConstantOp>(
         loc, builder.getF32FloatAttr(-std::numeric_limits<float>::infinity()));
@@ -1571,9 +1626,9 @@ void Codegen::genSoftmaxNode(
         collectDynamicDims(builder, loc, input, inputType);
     auto expEmpty = builder.create<mlir::tensor::EmptyOp>(
         loc, inputType.getShape(), inputType.getElementType(), dynamicDims);
-    llvm::SmallVector<mlir::utils::IteratorType> parallelIterators(
-        static_cast<size_t>(inputType.getRank()),
-        mlir::utils::IteratorType::parallel);
+
+    auto parallelIterators = createParallelIterators(inputType.getRank());
+    
     auto expValues = builder.create<mlir::linalg::GenericOp>(
         loc, mlir::TypeRange{inputType},
         mlir::ValueRange{input, rowMax.getResult(0)},
