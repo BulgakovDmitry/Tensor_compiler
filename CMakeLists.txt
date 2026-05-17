@@ -158,7 +158,7 @@ set(GENERATED_ASM     "${CMAKE_CURRENT_SOURCE_DIR}/model.s")
 
 add_custom_target(compile_model
     COMMAND ${CMAKE_BINARY_DIR}/tensor-compiler
-            ${CMAKE_SOURCE_DIR}/models/resnet50.onnx
+            ${CMAKE_SOURCE_DIR}/models/mnist-12.onnx
             -emit=asm
     DEPENDS ${PROJECT_NAME}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
