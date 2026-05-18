@@ -190,17 +190,6 @@ target_include_directories(tensor_model PUBLIC "${CMAKE_SOURCE_DIR}/include")
 
 add_dependencies(tensor_model compile_model)
 
-add_executable(mnist-runner EXCLUDE_FROM_ALL
-    tools/mnist-runner.c
-    ${RUNTIME_WRAPPER}
-    lib/Runtime/MemRefCopy.c
-    ${GENERATED_ASM}
-)
-
-target_include_directories(mnist-runner PRIVATE "${CMAKE_SOURCE_DIR}/include")
-target_link_libraries(mnist-runner PRIVATE m)
-add_dependencies(mnist-runner compile_model)
-
 # -------------------------------------------------------------------
 # Graph dump
 # -------------------------------------------------------------------

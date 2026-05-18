@@ -24,9 +24,9 @@ out_ptr = out.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 ret = func(inp_ptr, out_ptr)
 
 if ret == 0:
-    print(f"Prediction: class={np.argmax(out[0])}, max_score={np.max(out[0]):.4f}")
+    print(f"Prediction: class={np.argmax(out[0])}")
 else:
     print(f"Execution failed with return code: {ret}")
 
 ort_out = ort.InferenceSession("models/mnist-12.onnx").run(None, {"Input3": inp})[0]
-print("Current:", np.argmax(out), " | Reference:", np.argmax(ort_out))
+print(f"Reference:  class={np.argmax(ort_out[0])}")
