@@ -6,4 +6,7 @@ utils*
 dump/
 .vscode/
 a.s
+model.s
+model.ll
 tmp/
+.venv

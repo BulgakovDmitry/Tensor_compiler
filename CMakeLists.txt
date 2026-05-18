@@ -14,13 +14,6 @@ find_package(Protobuf REQUIRED)
 find_package(Threads REQUIRED)
 find_package(MLIR REQUIRED CONFIG)
 
-message(STATUS "LLVM version: ${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}")
-message(STATUS "LLVM source dir: ${LLVM_DIR}")
-message(STATUS ">>> MLIR_DIR resolved: ${MLIR_DIR}")
-message(STATUS ">>> LLVM_DIR resolved: ${LLVM_DIR}")
-message(STATUS ">>> MLIR_INCLUDE_DIRS: ${MLIR_INCLUDE_DIRS}")
-message(STATUS ">>> LLVM_INCLUDE_DIRS: ${LLVM_INCLUDE_DIRS}")
-
 list(APPEND CMAKE_MODULE_PATH "${MLIR_CMAKE_DIR}")
 list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
 
@@ -165,7 +158,7 @@ set(GENERATED_ASM     "${CMAKE_CURRENT_SOURCE_DIR}/model.s")
 
 add_custom_target(compile_model
     COMMAND ${CMAKE_BINARY_DIR}/tensor-compiler
-            ${CMAKE_SOURCE_DIR}/models/resnet50.onnx
+            ${CMAKE_SOURCE_DIR}/models/mnist-12.onnx
             -emit=asm
     DEPENDS ${PROJECT_NAME}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -191,11 +184,10 @@ if(EXISTS "${GENERATED_ASM}")
         $<$<COMPILE_LANGUAGE:ASM>:-O3>
     )
 
-    target_link_libraries(tensor_model PRIVATE c)
+    target_link_libraries(tensor_model PRIVATE c m)
     target_include_directories(tensor_model PUBLIC "${CMAKE_SOURCE_DIR}/include")
 
-    # add_dependencies(tensor_model compile_model)
-
+    add_dependencies(tensor_model compile_model)
 else()
     message(STATUS "Generated ASM not found at ${GENERATED_ASM}")
 endif()

@@ -135,6 +135,22 @@ int driver(int argc, char *argv[]) {
         return 1;
     }
 
+    using namespace mlir;
+
+    auto moduleOp = mlirModule->getOperation();
+
+    // Target triple for System V AMD64 ABI
+    moduleOp->setAttr("llvm.target_triple",
+        StringAttr::get(&context, targetTriple));
+
+    if (targetTriple == "x86_64-pc-linux-gnu" ||
+        targetTriple.starts_with("x86_64-")) {
+        moduleOp->setAttr("llvm.data_layout",
+            StringAttr::get(&context,
+                "e-m:e-p270:32:32-p271:32:32-p272:64:64-"
+                "i64:64-f80:128-n8:16:32:64-S128"));
+    }
+
     if (emitTarget == "mlir") {
         mlirModule->print(llvm::outs());
         llvm::outs() << "\n";

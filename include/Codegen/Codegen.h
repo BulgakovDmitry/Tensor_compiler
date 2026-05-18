@@ -37,9 +37,14 @@ private:
   std::vector<mlir::Type> buildInputTypes(const Graph &graph) const;
   std::vector<mlir::Type> buildResultTypes(const Graph &graph) const;
 
-  void bindFunctionInputs(
-      const Graph &graph, mlir::Block *entry_block,
-      std::unordered_map<std::string, mlir::Value> &values) const;
+  void
+  bindRawPointerInputs(const Graph &graph, mlir::Block *entryBlock,
+                       mlir::OpBuilder &builder, mlir::Location loc,
+                       std::unordered_map<std::string, mlir::Value> &values);
+
+  void writeResultToOutputBuffer(mlir::OpBuilder &builder, mlir::Location loc,
+                                 mlir::Value computedTensor,
+                                 mlir::Value outBuffer);
 
   std::vector<mlir::Value> collectReturnValues(
       const Graph &graph,

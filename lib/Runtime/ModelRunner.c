@@ -1,9 +1,9 @@
 #include "ModelAPI/ModelAPI.h"
+#include <string.h>
+#include <stdint.h>
 
-extern int tensorCompForwardImpl(const float* input, float* output);
+extern int tensorCompForwardImpl(float* input, float* output);
 
 int tensorCompForward(const float* input, float* output) {
-    if (!input || !output) return -1;
-
-    return tensorCompForwardImpl(input, output);
+    return tensorCompForwardImpl((float*)input, output);
 }
