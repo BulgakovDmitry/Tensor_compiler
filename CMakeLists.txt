@@ -155,6 +155,7 @@ enable_language(ASM)
 
 set(RUNTIME_WRAPPER   "${CMAKE_CURRENT_SOURCE_DIR}/lib/Runtime/ModelRunner.c")
 set(GENERATED_ASM     "${CMAKE_CURRENT_SOURCE_DIR}/model.s")
+set_source_files_properties("${GENERATED_ASM}" PROPERTIES GENERATED TRUE)
 
 add_custom_target(compile_model
     COMMAND ${CMAKE_BINARY_DIR}/tensor-compiler
@@ -165,32 +166,40 @@ add_custom_target(compile_model
     VERBATIM
 )
 
-if(EXISTS "${GENERATED_ASM}")
-    add_library(tensor_model SHARED EXCLUDE_FROM_ALL
-        ${RUNTIME_WRAPPER}
-        ${GENERATED_ASM}
-    )
+add_library(tensor_model SHARED EXCLUDE_FROM_ALL
+    ${RUNTIME_WRAPPER}
+    lib/Runtime/MemRefCopy.c
+    ${GENERATED_ASM}
+)
 
-    set_target_properties(tensor_model PROPERTIES
-        OUTPUT_NAME "tensor_model"
-        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-        POSITION_INDEPENDENT_CODE ON
-        C_VISIBILITY_PRESET default
-        ASM_VISIBILITY_PRESET hidden
-    )
+set_target_properties(tensor_model PROPERTIES
+    OUTPUT_NAME "tensor_model"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    POSITION_INDEPENDENT_CODE ON
+    C_VISIBILITY_PRESET default
+    ASM_VISIBILITY_PRESET hidden
+)
 
-    target_compile_options(tensor_model PRIVATE
-        $<$<COMPILE_LANGUAGE:C>:-O3 -march=native -ffast-math>
-        $<$<COMPILE_LANGUAGE:ASM>:-O3>
-    )
+target_compile_options(tensor_model PRIVATE
+    $<$<COMPILE_LANGUAGE:C>:-O3 -march=native -ffast-math>
+    $<$<COMPILE_LANGUAGE:ASM>:-O3>
+)
 
-    target_link_libraries(tensor_model PRIVATE c m)
-    target_include_directories(tensor_model PUBLIC "${CMAKE_SOURCE_DIR}/include")
+target_link_libraries(tensor_model PRIVATE c m)
+target_include_directories(tensor_model PUBLIC "${CMAKE_SOURCE_DIR}/include")
 
-    add_dependencies(tensor_model compile_model)
-else()
-    message(STATUS "Generated ASM not found at ${GENERATED_ASM}")
-endif()
+add_dependencies(tensor_model compile_model)
+
+add_executable(mnist-runner EXCLUDE_FROM_ALL
+    tools/mnist-runner.c
+    ${RUNTIME_WRAPPER}
+    lib/Runtime/MemRefCopy.c
+    ${GENERATED_ASM}
+)
+
+target_include_directories(mnist-runner PRIVATE "${CMAKE_SOURCE_DIR}/include")
+target_link_libraries(mnist-runner PRIVATE m)
+add_dependencies(mnist-runner compile_model)
 
 # -------------------------------------------------------------------
 # Graph dump
