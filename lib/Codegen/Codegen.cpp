@@ -7,10 +7,12 @@
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
 #include "mlir/Dialect/Math/IR/Math.h"
 #include "mlir/Dialect/Tensor/IR/Tensor.h"
+#include "mlir/Dialect/Bufferization/IR/Bufferization.h"
 #include "mlir/Dialect/LLVMIR/LLVMDialect.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Linalg/Utils/Utils.h"
+#include "mlir/Dialect/MemRef/IR/MemRef.h"
 #include "llvm/ADT/SmallVector.h"
 
 namespace tensor_compiler {
@@ -73,6 +75,20 @@ int64_t getIntAttribute(const Node &node, const std::string &name,
         throw std::runtime_error("attribute '" + name + "' must be an integer");
     }
     return *intValue;
+}
+
+std::string getStringAttribute(const Node &node, const std::string &name,
+                               std::string defaultValue) {
+    const Attribute::AttrValue *value = getAttributeValue(node, name);
+    if (!value) {
+        return defaultValue;
+    }
+
+    const auto *stringValue = std::get_if<std::string>(value);
+    if (!stringValue) {
+        throw std::runtime_error("attribute '" + name + "' must be a string");
+    }
+    return *stringValue;
 }
 
 // float getFloatAttribute(const Node &node, const std::string &name,
@@ -308,12 +324,6 @@ mlir::Value genBroadcastAddOp(
     return addOp.getResult(0);
 }
 
-mlir::Value createTensorFromPtr(mlir::OpBuilder &builder, mlir::Location loc,
-                                mlir::Value ptr, mlir::RankedTensorType tensorType) {
-    return builder.create<mlir::UnrealizedConversionCastOp>(
-        loc, mlir::TypeRange{tensorType}, mlir::ValueRange{ptr}).getResult(0);
-}
-
 } // namespace
 
 Codegen::Codegen(mlir::MLIRContext &context) : context_(context) {}
@@ -364,7 +374,8 @@ mlir::OwningOpRef<mlir::ModuleOp> Codegen::generate(const Graph &graph) {
     auto i32Type = builder.getI32Type();
 
     auto funcArgs = buildInputTypes(graph);
-    funcArgs.insert(funcArgs.end(), buildResultTypes(graph).begin(), buildResultTypes(graph).end());
+    auto resultArgs = buildResultTypes(graph);
+    funcArgs.insert(funcArgs.end(), resultArgs.begin(), resultArgs.end());
 
     auto funcType = builder.getFunctionType(funcArgs, {i32Type});
     auto func = mlir::func::FuncOp::create(loc, ENTRY_FUNC_NAME, funcType);
@@ -387,11 +398,10 @@ mlir::OwningOpRef<mlir::ModuleOp> Codegen::generate(const Graph &graph) {
         }
 
         mlir::Value computedTensor = it->second;
-        mlir::Value outPtr = entryBlock->getArgument(outArgOffset + i);
-        mlir::Value outBuffer = createTensorFromPtr(builder, loc, outPtr,
-                                                    mlir::cast<mlir::RankedTensorType>(computedTensor.getType()));
-
-        writeResultToOutputBuffer(builder, loc, computedTensor, outBuffer);
+        mlir::Value outBuffer = entryBlock->getArgument(outArgOffset + i);
+        builder.create<mlir::bufferization::MaterializeInDestinationOp>(
+            loc, mlir::Type(), computedTensor, outBuffer,
+            /*restrict=*/true, /*writable=*/true);
     }
 
     builder.create<mlir::func::ReturnOp>(loc,
@@ -430,16 +440,30 @@ Codegen::convertTensorType(const Tensor &tensor) const {
 std::vector<mlir::Type> Codegen::buildInputTypes(const Graph &graph) const {
     std::vector<mlir::Type> inputTypes;
     inputTypes.reserve(graph.inputs().size());
-    auto ptrType = mlir::LLVM::LLVMPointerType::get(&context_, 0);
-    for (size_t i = 0; i < graph.inputs().size(); ++i) inputTypes.push_back(ptrType);
+    for (const std::string &name : graph.inputs()) {
+        const Tensor *tensor = graph.tensor(name);
+        if (!tensor) {
+            throw std::runtime_error("input tensor not found: " + name);
+        }
+        auto tensorType = convertTensorType(*tensor);
+        inputTypes.push_back(mlir::MemRefType::get(
+            tensorType.getShape(), tensorType.getElementType()));
+    }
     return inputTypes;
 }
 
 std::vector<mlir::Type> Codegen::buildResultTypes(const Graph &graph) const {
     std::vector<mlir::Type> resultTypes;
     resultTypes.reserve(graph.outputs().size());
-    auto ptrType = mlir::LLVM::LLVMPointerType::get(&context_, 0);
-    for (size_t i = 0; i < graph.outputs().size(); ++i) resultTypes.push_back(ptrType);
+    for (const std::string &name : graph.outputs()) {
+        const Tensor *tensor = graph.tensor(name);
+        if (!tensor) {
+            throw std::runtime_error("output tensor not found: " + name);
+        }
+        auto tensorType = convertTensorType(*tensor);
+        resultTypes.push_back(mlir::MemRefType::get(
+            tensorType.getShape(), tensorType.getElementType()));
+    }
     return resultTypes;
 }
 
@@ -451,18 +475,16 @@ void Codegen::bindRawPointerInputs(
     std::unordered_map<std::string, mlir::Value> &values) {
 
     auto bindOne = [&](size_t argIdx, const std::string &name, const Tensor *tensor) {
-        if (!tensor) throw std::runtime_error("tensor not found: " + name);
-        mlir::Value ptr = entryBlock->getArgument(argIdx);
-        values[name] = createTensorFromPtr(builder, loc, ptr, convertTensorType(*tensor));
+        if (!tensor) {
+            throw std::runtime_error("tensor not found: " + name);
+        }
+        mlir::Value memref = entryBlock->getArgument(argIdx);
+        values[name] = builder.create<mlir::bufferization::ToTensorOp>(
+            loc, memref, /*restrict=*/true, /*writable=*/false);
     };
 
     for (size_t i = 0; i < graph.inputs().size(); ++i) {
         bindOne(i, graph.inputs()[i], graph.tensor(graph.inputs()[i]));
-    }
-
-    size_t outOffset = graph.inputs().size();
-    for (size_t i = 0; i < graph.outputs().size(); ++i) {
-        bindOne(outOffset + i, graph.outputs()[i], graph.tensor(graph.outputs()[i]));
     }
 }
 
@@ -864,6 +886,7 @@ void Codegen::genConvNode(
     auto strides = getIntVectorAttribute(node, "strides", {1, 1});
     auto dilations = getIntVectorAttribute(node, "dilations", {1, 1});
     auto pads = getIntVectorAttribute(node, "pads", {0, 0, 0, 0});
+    std::string autoPad = getStringAttribute(node, "auto_pad", "NOTSET");
     requireSize(strides, 2, "strides");
     requireSize(dilations, 2, "dilations");
     requireSize(pads, 4, "pads");
@@ -893,10 +916,30 @@ void Codegen::genConvNode(
     int64_t dilationH = checkedPositiveDim(dilations[0], "dilation height");
     int64_t dilationW = checkedPositiveDim(dilations[1], "dilation width");
 
-    int64_t paddedH = inputH + pads[0] + pads[2];
-    int64_t paddedW = inputW + pads[1] + pads[3];
     int64_t effectiveKernelH = dilationH * (kernelH - 1) + 1;
     int64_t effectiveKernelW = dilationW * (kernelW - 1) + 1;
+
+    if (autoPad == "SAME_UPPER" || autoPad == "SAME_LOWER") {
+        int64_t sameOutH = (inputH + strideH - 1) / strideH;
+        int64_t sameOutW = (inputW + strideW - 1) / strideW;
+        int64_t totalPadH =
+            std::max<int64_t>((sameOutH - 1) * strideH + effectiveKernelH - inputH, 0);
+        int64_t totalPadW =
+            std::max<int64_t>((sameOutW - 1) * strideW + effectiveKernelW - inputW, 0);
+
+        if (autoPad == "SAME_UPPER") {
+            pads = {totalPadH / 2, totalPadW / 2,
+                    totalPadH - totalPadH / 2, totalPadW - totalPadW / 2};
+        } else {
+            pads = {totalPadH - totalPadH / 2, totalPadW - totalPadW / 2,
+                    totalPadH / 2, totalPadW / 2};
+        }
+    } else if (autoPad != "NOTSET") {
+        throw std::runtime_error("Conv auto_pad is not supported: " + autoPad);
+    }
+
+    int64_t paddedH = inputH + pads[0] + pads[2];
+    int64_t paddedW = inputW + pads[1] + pads[3];
     int64_t outH = (paddedH - effectiveKernelH) / strideH + 1;
     int64_t outW = (paddedW - effectiveKernelW) / strideW + 1;
 

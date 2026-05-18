@@ -10,3 +10,4 @@ model.s
 model.ll
 tmp/
 .venv
+run.sh
